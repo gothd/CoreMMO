@@ -1,0 +1,4 @@
+name: CoreMMO
+version: '1.0-SNAPSHOT'
+main: br.com.ruasvivas.coreMMO.CoreMMO
+api-version: '1.21'
