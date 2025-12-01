@@ -9,3 +9,6 @@ commands:
   espada:
     description: Dá uma espada lendária ao jogador.
     usage: /espada
+  classe:
+    description: Abre o menu de seleção de classes.
+    usage: /classe

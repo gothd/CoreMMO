@@ -3,6 +3,7 @@ package br.com.ruasvivas.coreMMO;
 import br.com.ruasvivas.coreMMO.comandos.ComandoEspada;
 import br.com.ruasvivas.coreMMO.eventos.ChatLegendario;
 import br.com.ruasvivas.coreMMO.eventos.EntradaJornada;
+import br.com.ruasvivas.coreMMO.menus.MenuClasses;
 import org.bukkit.plugin.java.JavaPlugin;
 import br.com.ruasvivas.coreMMO.comandos.ComandoCurar;
 
@@ -25,6 +26,15 @@ public final class CoreMMO extends JavaPlugin {
         // 'this' significa que o plugin dono é este aqui (CoreMMO).
         getServer().getPluginManager().registerEvents(new EntradaJornada(), this);
         getServer().getPluginManager().registerEvents(new ChatLegendario(), this);
+
+        // Instanciamos a classe uma vez
+        MenuClasses menu = new MenuClasses();
+
+        // 1. Registra o comando /classe
+        Objects.requireNonNull(getCommand("classe")).setExecutor(menu);
+
+        // 2. Registra o evento de clique
+        getServer().getPluginManager().registerEvents(menu, this);
     }
 
     @Override

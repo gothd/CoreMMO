@@ -1,5 +1,6 @@
 package br.com.ruasvivas.coreMMO.eventos;
 
+import br.com.ruasvivas.coreMMO.placar.GerentePlacar;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent; // O Evento de Entrar
@@ -40,5 +41,7 @@ public class EntradaJornada implements Listener {
         // Toca o som na posição do jogador
         // 1.0f = Volume Máximo, 1.0f = Velocidade Normal
         jogador.playSound(jogador.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0f, 1.0f);
+
+        new GerentePlacar().criarPlacar(jogador);
     }
 }
