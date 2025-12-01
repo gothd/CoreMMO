@@ -2,3 +2,10 @@ name: CoreMMO
 version: '1.0-SNAPSHOT'
 main: br.com.ruasvivas.coreMMO.CoreMMO
 api-version: '1.21'
+commands:
+  curar:
+    description: Recupera vida e fome do jogador.
+    usage: /curar
+  espada:
+    description: Dá uma espada lendária ao jogador.
+    usage: /espada
