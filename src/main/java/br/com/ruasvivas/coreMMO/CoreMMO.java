@@ -1,10 +1,13 @@
 package br.com.ruasvivas.coreMMO;
 
 import br.com.ruasvivas.coreMMO.banco.GerenteBanco;
+import br.com.ruasvivas.coreMMO.cache.GerenteDados;
 import br.com.ruasvivas.coreMMO.comandos.ComandoCurar;
 import br.com.ruasvivas.coreMMO.comandos.ComandoEspada;
+import br.com.ruasvivas.coreMMO.dao.JogadorDAO;
 import br.com.ruasvivas.coreMMO.eventos.ChatLegendario;
 import br.com.ruasvivas.coreMMO.eventos.EntradaJornada;
+import br.com.ruasvivas.coreMMO.eventos.SaidaJornada;
 import br.com.ruasvivas.coreMMO.menus.MenuClasses;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -14,17 +17,25 @@ import java.util.logging.Level;
 public final class CoreMMO extends JavaPlugin {
 
     private GerenteBanco gerenteBanco;
+    private GerenteDados gerenteDados;
+    private JogadorDAO jogadorDAO;
 
     @Override
     public void onEnable() {
         // 1. Salva o config.yml se ele não existir na pasta do servidor
         saveDefaultConfig();
 
+        // Inicializa o cache (memória apenas, é rápido)
+        gerenteDados = new GerenteDados();
+
         // 2. Inicializa o banco
         gerenteBanco = new GerenteBanco(this);
 
         try {
             gerenteBanco.abrirConexao();
+
+            // Inicializa a DAO
+            jogadorDAO = new JogadorDAO(this, gerenteBanco);
         } catch (Exception e) {
             // Log robusto com a exceção completa
             getLogger().log(Level.SEVERE, "Falha crítica ao iniciar banco de dados!", e);
@@ -41,8 +52,9 @@ public final class CoreMMO extends JavaPlugin {
         // REGISTRO DE EVENTOS
         // "Servidor, pegue seu Gerente de Plugins e registre os eventos desta classe"
         // 'this' significa que o plugin dono é este aqui (CoreMMO).
-        getServer().getPluginManager().registerEvents(new EntradaJornada(), this);
+        getServer().getPluginManager().registerEvents(new EntradaJornada(this), this);
         getServer().getPluginManager().registerEvents(new ChatLegendario(), this);
+        getServer().getPluginManager().registerEvents(new SaidaJornada(this), this);
 
         // Instanciamos a classe uma vez
         MenuClasses menu = new MenuClasses();
@@ -66,5 +78,14 @@ public final class CoreMMO extends JavaPlugin {
     // Getter útil para outras classes acessarem o banco
     public GerenteBanco getGerenteBanco() {
         return gerenteBanco;
+    }
+
+    // Getter para acesso externo
+    public JogadorDAO getJogadorDAO() {
+        return jogadorDAO;
+    }
+
+    public GerenteDados getGerenteDados() {
+        return gerenteDados;
     }
 }
