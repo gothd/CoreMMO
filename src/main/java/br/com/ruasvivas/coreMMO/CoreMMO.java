@@ -1,19 +1,36 @@
 package br.com.ruasvivas.coreMMO;
 
+import br.com.ruasvivas.coreMMO.banco.GerenteBanco;
+import br.com.ruasvivas.coreMMO.comandos.ComandoCurar;
 import br.com.ruasvivas.coreMMO.comandos.ComandoEspada;
 import br.com.ruasvivas.coreMMO.eventos.ChatLegendario;
 import br.com.ruasvivas.coreMMO.eventos.EntradaJornada;
 import br.com.ruasvivas.coreMMO.menus.MenuClasses;
 import org.bukkit.plugin.java.JavaPlugin;
-import br.com.ruasvivas.coreMMO.comandos.ComandoCurar;
 
 import java.util.Objects;
+import java.util.logging.Level;
 
 public final class CoreMMO extends JavaPlugin {
 
+    private GerenteBanco gerenteBanco;
+
     @Override
     public void onEnable() {
-        getLogger().info("Core Online.");
+        // 1. Salva o config.yml se ele não existir na pasta do servidor
+        saveDefaultConfig();
+
+        // 2. Inicializa o banco
+        gerenteBanco = new GerenteBanco(this);
+
+        try {
+            gerenteBanco.abrirConexao();
+        } catch (Exception e) {
+            // Log robusto com a exceção completa
+            getLogger().log(Level.SEVERE, "Falha crítica ao iniciar banco de dados!", e);
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
 
         // REGISTRO DE COMANDOS
         // "Ei servidor, o comando 'curar' será resolvido pela classe ComandoCurar"
@@ -35,10 +52,19 @@ public final class CoreMMO extends JavaPlugin {
 
         // 2. Registra o evento de clique
         getServer().getPluginManager().registerEvents(menu, this);
+
+        getLogger().info("Core Online.");
     }
 
     @Override
     public void onDisable() {
-        // Plugin shutdown logic
+        if (gerenteBanco != null) {
+            gerenteBanco.fecharConexao();
+        }
+    }
+
+    // Getter útil para outras classes acessarem o banco
+    public GerenteBanco getGerenteBanco() {
+        return gerenteBanco;
     }
 }
