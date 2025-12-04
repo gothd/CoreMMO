@@ -9,6 +9,7 @@ import br.com.ruasvivas.coreMMO.eventos.ChatLegendario;
 import br.com.ruasvivas.coreMMO.eventos.EntradaJornada;
 import br.com.ruasvivas.coreMMO.eventos.SaidaJornada;
 import br.com.ruasvivas.coreMMO.menus.MenuClasses;
+import br.com.ruasvivas.coreMMO.tasks.AutoSaveTask;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Objects;
@@ -64,6 +65,11 @@ public final class CoreMMO extends JavaPlugin {
 
         // 2. Registra o evento de clique
         getServer().getPluginManager().registerEvents(menu, this);
+
+        // INICIANDO AS TASKS
+        // runTaskTimer(plugin, delay, periodo)
+        // Delay 0 (começa já), Repete a cada 12000 ticks (10 minutos)
+        new AutoSaveTask(this).runTaskTimer(this, 0L, 12000L);
 
         getLogger().info("Core Online.");
     }
