@@ -14,6 +14,8 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot; // Importante!
 
+import java.util.UUID;
+
 public class BatalhaListener implements Listener {
 
     private final CoreMMO plugin;
@@ -50,12 +52,29 @@ public class BatalhaListener implements Listener {
             // Item de teste
             if (jogador.getInventory().getItemInMainHand().getType() == Material.BLAZE_ROD) {
 
-                DadosJogador dados = plugin.getGerenteDados().getDados(jogador.getUniqueId());
+                // --- 1. VERIFICAÇÃO DE COOLDOWN ---
+                UUID id = jogador.getUniqueId();
+                String habilidade = "bola_fogo";
+
+                if (plugin.getGerenteCooldowns().emCooldown(id, habilidade)) {
+                    double falta = plugin.getGerenteCooldowns().getSegundosRestantes(id, habilidade);
+
+                    jogador.sendMessage(Component.text("Aguarde " + String.format("%.1f", falta) + "s!")
+                            .color(NamedTextColor.RED));
+                    return; // Cancela a magia
+                }
+                // ----------------------------------
+
+                DadosJogador dados = plugin.getGerenteDados().getDados(id);
 
                 if (dados != null) {
                     double custo = 20.0;
 
                     if (dados.getMana() >= custo) {
+                        // --- 2. APLICAÇÃO DO COOLDOWN ---
+                        // Define 2 segundos de recarga se o uso for bem sucedido
+                        plugin.getGerenteCooldowns().adicionarCooldown(id, habilidade, 2);
+
                         // GASTA E ATUALIZA
                         dados.setMana(dados.getMana() - custo);
 

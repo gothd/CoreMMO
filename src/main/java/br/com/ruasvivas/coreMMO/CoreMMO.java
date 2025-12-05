@@ -1,6 +1,7 @@
 package br.com.ruasvivas.coreMMO;
 
 import br.com.ruasvivas.coreMMO.banco.GerenteBanco;
+import br.com.ruasvivas.coreMMO.cache.GerenteCooldowns;
 import br.com.ruasvivas.coreMMO.cache.GerenteDados;
 import br.com.ruasvivas.coreMMO.comandos.ComandoCurar;
 import br.com.ruasvivas.coreMMO.comandos.ComandoEspada;
@@ -21,6 +22,7 @@ public final class CoreMMO extends JavaPlugin {
 
     private GerenteBanco gerenteBanco;
     private GerenteDados gerenteDados;
+    private br.com.ruasvivas.coreMMO.cache.GerenteCooldowns gerenteCooldowns;
     private JogadorDAO jogadorDAO;
 
     @Override
@@ -30,6 +32,7 @@ public final class CoreMMO extends JavaPlugin {
 
         // Inicializa o cache (memória apenas, é rápido)
         gerenteDados = new GerenteDados();
+        gerenteCooldowns = new GerenteCooldowns();
 
         // 2. Inicializa o banco
         gerenteBanco = new GerenteBanco(this);
@@ -100,5 +103,9 @@ public final class CoreMMO extends JavaPlugin {
 
     public GerenteDados getGerenteDados() {
         return gerenteDados;
+    }
+
+    public GerenteCooldowns getGerenteCooldowns() {
+        return gerenteCooldowns;
     }
 }
