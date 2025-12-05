@@ -15,6 +15,10 @@ public class DadosJogador {
     private long experiencia;
     private long moedas;
 
+    // Atributos
+    private double mana;
+    private double maxMana;
+
     // Localização
     private String mundo;
     private double x, y, z;
@@ -26,6 +30,8 @@ public class DadosJogador {
         this.nivel = 1;
         this.experiencia = 0;
         this.moedas = 0;
+        this.mana = 100;
+        this.maxMana = 100;
     }
 
     // --- Getters e Setters ---
@@ -59,6 +65,24 @@ public class DadosJogador {
 
     public void setMoedas(long moedas) {
         this.moedas = moedas;
+    }
+
+    public double getMana() {
+        return mana;
+    }
+
+    public double getMaxMana() {
+        return maxMana;
+    }
+
+    // Setter Inteligente (Clamping)
+    public void setMana(double mana) {
+        // Garante que a mana nunca seja menor que 0 ou maior que o máximo
+        this.mana = Math.max(0, Math.min(mana, maxMana));
+    }
+
+    public void setMaxMana(double maxMana) {
+        this.maxMana = maxMana;
     }
 
     // --- Localização ---

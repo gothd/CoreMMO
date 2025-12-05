@@ -5,11 +5,13 @@ import br.com.ruasvivas.coreMMO.cache.GerenteDados;
 import br.com.ruasvivas.coreMMO.comandos.ComandoCurar;
 import br.com.ruasvivas.coreMMO.comandos.ComandoEspada;
 import br.com.ruasvivas.coreMMO.dao.JogadorDAO;
+import br.com.ruasvivas.coreMMO.eventos.BatalhaListener;
 import br.com.ruasvivas.coreMMO.eventos.ChatLegendario;
 import br.com.ruasvivas.coreMMO.eventos.EntradaJornada;
 import br.com.ruasvivas.coreMMO.eventos.SaidaJornada;
 import br.com.ruasvivas.coreMMO.menus.MenuClasses;
 import br.com.ruasvivas.coreMMO.tasks.AutoSaveTask;
+import br.com.ruasvivas.coreMMO.tasks.RegeneracaoTask;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Objects;
@@ -56,6 +58,8 @@ public final class CoreMMO extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new EntradaJornada(this), this);
         getServer().getPluginManager().registerEvents(new ChatLegendario(), this);
         getServer().getPluginManager().registerEvents(new SaidaJornada(this), this);
+        // Registra os eventos de batalha
+        getServer().getPluginManager().registerEvents(new BatalhaListener(this), this);
 
         // Instanciamos a classe uma vez
         MenuClasses menu = new MenuClasses();
@@ -70,6 +74,9 @@ public final class CoreMMO extends JavaPlugin {
         // runTaskTimer(plugin, delay, periodo)
         // Delay 0 (começa já), Repete a cada 12000 ticks (10 minutos)
         new AutoSaveTask(this).runTaskTimer(this, 0L, 12000L);
+        // Inicia o relógio de regeneração (Delay 0, Repete a cada 20 ticks/1s)
+        new RegeneracaoTask(this).runTaskTimer(this, 0L, 20L);
+
 
         getLogger().info("Core Online.");
     }

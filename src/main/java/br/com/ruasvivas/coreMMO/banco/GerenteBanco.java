@@ -44,6 +44,9 @@ public class GerenteBanco {
 
         // 4. Cria a tabela se não existir (Automação)
         inicializarTabela();
+
+        // 5. Atualiza a tabela (Self-Healing)
+        atualizarTabela();
     }
 
     public void fecharConexao() {
@@ -75,6 +78,26 @@ public class GerenteBanco {
         } catch (SQLException e) {
             // Log profissional em vez de printStackTrace
             plugin.getLogger().log(Level.SEVERE, "Erro ao criar tabela 'jogadores'!", e);
+        }
+    }
+
+    private void atualizarTabela() {
+        // Lista de atualizações necessárias
+        // MariaDB suporta "ADD COLUMN IF NOT EXISTS" (Seguro e limpo)
+        String[] updates = {
+                "ALTER TABLE jogadores ADD COLUMN IF NOT EXISTS mana DOUBLE DEFAULT 100",
+                "ALTER TABLE jogadores ADD COLUMN IF NOT EXISTS mana_max DOUBLE DEFAULT 100"
+        };
+
+        try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
+
+            for (String sql : updates) {
+                stmt.executeUpdate(sql);
+            }
+
+        } catch (SQLException e) {
+            // Log de erro se algo der errado na migração
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erro ao atualizar tabela 'jogadores'!", e);
         }
     }
 }

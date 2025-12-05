@@ -52,6 +52,10 @@ public class JogadorDAO {
                 dados.setExperiencia(rs.getLong("experiencia"));
                 dados.setMoedas(rs.getLong("moedas"));
 
+                // Preenchendo a Mana
+                dados.setMana(rs.getDouble("mana"));
+                dados.setMaxMana(rs.getDouble("mana_max"));
+
                 // Preenchendo Localização
                 dados.setLocalizacao(rs.getString("loc_mundo"), rs.getDouble("loc_x"), rs.getDouble("loc_y"),
                         rs.getDouble("loc_z"), rs.getFloat("loc_yaw"), rs.getFloat("loc_pitch"));
@@ -68,6 +72,7 @@ public class JogadorDAO {
         String sql = """
                     UPDATE jogadores SET
                     nivel=?, experiencia=?, moedas=?,
+                    mana=?, mana_max=?,
                     loc_mundo=?, loc_x=?, loc_y=?, loc_z=?, loc_yaw=?, loc_pitch=?,
                     ultimo_login=CURRENT_TIMESTAMP
                     WHERE uuid=?
@@ -80,16 +85,20 @@ public class JogadorDAO {
             ps.setLong(2, dados.getExperiencia());
             ps.setLong(3, dados.getMoedas());
 
+            // Mana
+            ps.setDouble(4, dados.getMana());
+            ps.setDouble(5, dados.getMaxMana());
+
             // Localização
-            ps.setString(4, dados.getMundo());
-            ps.setDouble(5, dados.getX());
-            ps.setDouble(6, dados.getY());
-            ps.setDouble(7, dados.getZ());
-            ps.setFloat(8, dados.getYaw());
-            ps.setFloat(9, dados.getPitch());
+            ps.setString(6, dados.getMundo());
+            ps.setDouble(7, dados.getX());
+            ps.setDouble(8, dados.getY());
+            ps.setDouble(9, dados.getZ());
+            ps.setFloat(10, dados.getYaw());
+            ps.setFloat(11, dados.getPitch());
 
             // Where
-            ps.setString(10, dados.getUuid().toString());
+            ps.setString(12, dados.getUuid().toString());
 
             ps.executeUpdate();
             return true;
