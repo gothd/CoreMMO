@@ -12,3 +12,9 @@ commands:
   classe:
     description: Abre o menu de seleção de classes.
     usage: /classe
+  saldo:
+    description: Mostra quanto dinheiro você tem.
+    usage: /saldo
+  pagar:
+    description: Envia dinheiro para outro jogador.
+    usage: /pagar <jogador> <valor>

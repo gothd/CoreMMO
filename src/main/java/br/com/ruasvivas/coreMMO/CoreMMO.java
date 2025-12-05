@@ -5,7 +5,10 @@ import br.com.ruasvivas.coreMMO.cache.GerenteCooldowns;
 import br.com.ruasvivas.coreMMO.cache.GerenteDados;
 import br.com.ruasvivas.coreMMO.comandos.ComandoCurar;
 import br.com.ruasvivas.coreMMO.comandos.ComandoEspada;
+import br.com.ruasvivas.coreMMO.comandos.ComandoPagar;
+import br.com.ruasvivas.coreMMO.comandos.ComandoSaldo;
 import br.com.ruasvivas.coreMMO.dao.JogadorDAO;
+import br.com.ruasvivas.coreMMO.economia.GerenteEconomia;
 import br.com.ruasvivas.coreMMO.eventos.BatalhaListener;
 import br.com.ruasvivas.coreMMO.eventos.ChatLegendario;
 import br.com.ruasvivas.coreMMO.eventos.EntradaJornada;
@@ -22,7 +25,8 @@ public final class CoreMMO extends JavaPlugin {
 
     private GerenteBanco gerenteBanco;
     private GerenteDados gerenteDados;
-    private br.com.ruasvivas.coreMMO.cache.GerenteCooldowns gerenteCooldowns;
+    private GerenteCooldowns gerenteCooldowns;
+    private GerenteEconomia gerenteEconomia;
     private JogadorDAO jogadorDAO;
 
     @Override
@@ -33,6 +37,8 @@ public final class CoreMMO extends JavaPlugin {
         // Inicializa o cache (memória apenas, é rápido)
         gerenteDados = new GerenteDados();
         gerenteCooldowns = new GerenteCooldowns();
+
+        gerenteEconomia = new GerenteEconomia(this);
 
         // 2. Inicializa o banco
         gerenteBanco = new GerenteBanco(this);
@@ -54,6 +60,9 @@ public final class CoreMMO extends JavaPlugin {
         // Usamos Objects.requireNonNull para garantir segurança se o comando não existir no yml
         Objects.requireNonNull(getCommand("curar")).setExecutor(new ComandoCurar());
         Objects.requireNonNull(getCommand("espada")).setExecutor(new ComandoEspada());
+        // Registrando Economia
+        Objects.requireNonNull(getCommand("saldo")).setExecutor(new ComandoSaldo(this));
+        Objects.requireNonNull(getCommand("pagar")).setExecutor(new ComandoPagar(this));
 
         // REGISTRO DE EVENTOS
         // "Servidor, pegue seu Gerente de Plugins e registre os eventos desta classe"
@@ -107,5 +116,9 @@ public final class CoreMMO extends JavaPlugin {
 
     public GerenteCooldowns getGerenteCooldowns() {
         return gerenteCooldowns;
+    }
+
+    public GerenteEconomia getGerenteEconomia() {
+        return gerenteEconomia;
     }
 }
