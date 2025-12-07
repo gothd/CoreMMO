@@ -19,6 +19,9 @@ public class DadosJogador {
     private double mana;
     private double maxMana;
 
+    // 0 significa "Sem Guilda" (no banco será NULL)
+    private int guildaId;
+
     // Localização
     private String mundo;
     private double x, y, z;
@@ -83,6 +86,19 @@ public class DadosJogador {
 
     public void setMaxMana(double maxMana) {
         this.maxMana = maxMana;
+    }
+
+    public int getGuildaId() {
+        return guildaId;
+    }
+
+    public void setGuildaId(int id) {
+        this.guildaId = id;
+    }
+
+    // Método utilitário para facilitar verificações
+    public boolean temGuilda() {
+        return guildaId > 0;
     }
 
     // --- Localização ---

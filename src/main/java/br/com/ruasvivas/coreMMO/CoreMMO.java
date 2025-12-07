@@ -3,10 +3,9 @@ package br.com.ruasvivas.coreMMO;
 import br.com.ruasvivas.coreMMO.banco.GerenteBanco;
 import br.com.ruasvivas.coreMMO.cache.GerenteCooldowns;
 import br.com.ruasvivas.coreMMO.cache.GerenteDados;
-import br.com.ruasvivas.coreMMO.comandos.ComandoCurar;
-import br.com.ruasvivas.coreMMO.comandos.ComandoEspada;
-import br.com.ruasvivas.coreMMO.comandos.ComandoPagar;
-import br.com.ruasvivas.coreMMO.comandos.ComandoSaldo;
+import br.com.ruasvivas.coreMMO.cache.GerenteGuilda;
+import br.com.ruasvivas.coreMMO.comandos.*;
+import br.com.ruasvivas.coreMMO.dao.GuildaDAO;
 import br.com.ruasvivas.coreMMO.dao.JogadorDAO;
 import br.com.ruasvivas.coreMMO.economia.GerenteEconomia;
 import br.com.ruasvivas.coreMMO.eventos.BatalhaListener;
@@ -14,6 +13,7 @@ import br.com.ruasvivas.coreMMO.eventos.ChatLegendario;
 import br.com.ruasvivas.coreMMO.eventos.EntradaJornada;
 import br.com.ruasvivas.coreMMO.eventos.SaidaJornada;
 import br.com.ruasvivas.coreMMO.menus.MenuClasses;
+import br.com.ruasvivas.coreMMO.model.Guilda;
 import br.com.ruasvivas.coreMMO.tasks.AutoSaveTask;
 import br.com.ruasvivas.coreMMO.tasks.RegeneracaoTask;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -28,6 +28,8 @@ public final class CoreMMO extends JavaPlugin {
     private GerenteCooldowns gerenteCooldowns;
     private GerenteEconomia gerenteEconomia;
     private JogadorDAO jogadorDAO;
+    private GerenteGuilda gerenteGuilda;
+    private GuildaDAO guildaDAO;
 
     @Override
     public void onEnable() {
@@ -37,7 +39,7 @@ public final class CoreMMO extends JavaPlugin {
         // Inicializa o cache (memória apenas, é rápido)
         gerenteDados = new GerenteDados();
         gerenteCooldowns = new GerenteCooldowns();
-
+        gerenteGuilda = new GerenteGuilda();
         gerenteEconomia = new GerenteEconomia(this);
 
         // 2. Inicializa o banco
@@ -46,8 +48,18 @@ public final class CoreMMO extends JavaPlugin {
         try {
             gerenteBanco.abrirConexao();
 
-            // Inicializa a DAO
+            // Inicializa DAOs
             jogadorDAO = new JogadorDAO(this, gerenteBanco);
+            guildaDAO = new GuildaDAO(this, gerenteBanco);
+
+            // 3. ORQUESTRAÇÃO (Load Inicial)
+            // Tira do Disco (DAO) -> Põe na RAM (Gerente)
+            getLogger().info("Carregando guildas...");
+            for (Guilda g : guildaDAO.carregarTodas()) {
+                gerenteGuilda.registrarGuilda(g);
+            }
+            getLogger().info("Guildas carregadas!");
+
         } catch (Exception e) {
             // Log robusto com a exceção completa
             getLogger().log(Level.SEVERE, "Falha crítica ao iniciar banco de dados!", e);
@@ -63,6 +75,8 @@ public final class CoreMMO extends JavaPlugin {
         // Registrando Economia
         Objects.requireNonNull(getCommand("saldo")).setExecutor(new ComandoSaldo(this));
         Objects.requireNonNull(getCommand("pagar")).setExecutor(new ComandoPagar(this));
+        // Registrando Guilda
+        Objects.requireNonNull(getCommand("guilda")).setExecutor(new ComandoGuilda(this));
 
         // REGISTRO DE EVENTOS
         // "Servidor, pegue seu Gerente de Plugins e registre os eventos desta classe"
@@ -103,6 +117,14 @@ public final class CoreMMO extends JavaPlugin {
     // Getter útil para outras classes acessarem o banco
     public GerenteBanco getGerenteBanco() {
         return gerenteBanco;
+    }
+
+    public GerenteGuilda getGerenteGuilda() {
+        return gerenteGuilda;
+    }
+
+    public GuildaDAO getGuildaDAO() {
+        return guildaDAO;
     }
 
     // Getter para acesso externo

@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.UUID;
 import java.util.logging.Level;
+import java.sql.Types;
 
 public class JogadorDAO {
 
@@ -56,6 +57,9 @@ public class JogadorDAO {
                 dados.setMana(rs.getDouble("mana"));
                 dados.setMaxMana(rs.getDouble("mana_max"));
 
+                // Preenchendo a Guilda
+                dados.setGuildaId(rs.getInt("guilda_id"));
+
                 // Preenchendo Localização
                 dados.setLocalizacao(rs.getString("loc_mundo"), rs.getDouble("loc_x"), rs.getDouble("loc_y"),
                         rs.getDouble("loc_z"), rs.getFloat("loc_yaw"), rs.getFloat("loc_pitch"));
@@ -74,6 +78,7 @@ public class JogadorDAO {
                     nivel=?, experiencia=?, moedas=?,
                     mana=?, mana_max=?,
                     loc_mundo=?, loc_x=?, loc_y=?, loc_z=?, loc_yaw=?, loc_pitch=?,
+                    guilda_id=?,
                     ultimo_login=CURRENT_TIMESTAMP
                     WHERE uuid=?
                 """;
@@ -97,8 +102,16 @@ public class JogadorDAO {
             ps.setFloat(10, dados.getYaw());
             ps.setFloat(11, dados.getPitch());
 
+            // Guilda
+            if (dados.getGuildaId() > 0) {
+                ps.setInt(12, dados.getGuildaId());
+            } else {
+                // Se for 0, mandamos NULL explicitamente
+                ps.setNull(12, java.sql.Types.INTEGER);
+            }
+
             // Where
-            ps.setString(12, dados.getUuid().toString());
+            ps.setString(13, dados.getUuid().toString());
 
             ps.executeUpdate();
             return true;

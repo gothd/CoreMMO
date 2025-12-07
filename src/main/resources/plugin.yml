@@ -18,3 +18,7 @@ commands:
   pagar:
     description: Envia dinheiro para outro jogador.
     usage: /pagar <jogador> <valor>
+  guilda:
+    description: Sistema de guildas e clãs.
+    usage: /guilda <subcomando>
+    aliases: [ g, clan ]
