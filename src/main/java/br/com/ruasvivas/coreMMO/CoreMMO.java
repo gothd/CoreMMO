@@ -9,7 +9,6 @@ import br.com.ruasvivas.coreMMO.dao.GuildaDAO;
 import br.com.ruasvivas.coreMMO.dao.JogadorDAO;
 import br.com.ruasvivas.coreMMO.economia.GerenteEconomia;
 import br.com.ruasvivas.coreMMO.eventos.BatalhaListener;
-import br.com.ruasvivas.coreMMO.eventos.ChatLegendario;
 import br.com.ruasvivas.coreMMO.eventos.EntradaJornada;
 import br.com.ruasvivas.coreMMO.eventos.SaidaJornada;
 import br.com.ruasvivas.coreMMO.menus.MenuClasses;
@@ -82,7 +81,9 @@ public final class CoreMMO extends JavaPlugin {
         // "Servidor, pegue seu Gerente de Plugins e registre os eventos desta classe"
         // 'this' significa que o plugin dono é este aqui (CoreMMO).
         getServer().getPluginManager().registerEvents(new EntradaJornada(this), this);
-        getServer().getPluginManager().registerEvents(new ChatLegendario(), this);
+        getServer().getPluginManager().registerEvents(
+                new br.com.ruasvivas.coreMMO.eventos.CanalChatListener(this), this
+        );
         getServer().getPluginManager().registerEvents(new SaidaJornada(this), this);
         // Registra os eventos de batalha
         getServer().getPluginManager().registerEvents(new BatalhaListener(this), this);
