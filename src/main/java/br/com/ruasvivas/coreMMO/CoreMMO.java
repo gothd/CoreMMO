@@ -13,6 +13,8 @@ import br.com.ruasvivas.coreMMO.eventos.EntradaJornada;
 import br.com.ruasvivas.coreMMO.eventos.SaidaJornada;
 import br.com.ruasvivas.coreMMO.menus.MenuClasses;
 import br.com.ruasvivas.coreMMO.model.Guilda;
+import br.com.ruasvivas.coreMMO.npcs.GerenteNPC;
+import br.com.ruasvivas.coreMMO.npcs.NPCListener;
 import br.com.ruasvivas.coreMMO.tasks.AutoSaveTask;
 import br.com.ruasvivas.coreMMO.tasks.RegeneracaoTask;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -29,6 +31,7 @@ public final class CoreMMO extends JavaPlugin {
     private JogadorDAO jogadorDAO;
     private GerenteGuilda gerenteGuilda;
     private GuildaDAO guildaDAO;
+    private GerenteNPC gerenteNPC;
 
     @Override
     public void onEnable() {
@@ -40,6 +43,7 @@ public final class CoreMMO extends JavaPlugin {
         gerenteCooldowns = new GerenteCooldowns();
         gerenteGuilda = new GerenteGuilda();
         gerenteEconomia = new GerenteEconomia(this);
+        gerenteNPC = new GerenteNPC(this);
 
         // 2. Inicializa o banco
         gerenteBanco = new GerenteBanco(this);
@@ -87,6 +91,8 @@ public final class CoreMMO extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SaidaJornada(this), this);
         // Registra os eventos de batalha
         getServer().getPluginManager().registerEvents(new BatalhaListener(this), this);
+        // Registra NPCs
+        getServer().getPluginManager().registerEvents(new NPCListener(this), this);
 
         // Instanciamos a classe uma vez
         MenuClasses menu = new MenuClasses();
@@ -104,12 +110,19 @@ public final class CoreMMO extends JavaPlugin {
         // Inicia o relógio de regeneração (Delay 0, Repete a cada 20 ticks/1s)
         new RegeneracaoTask(this).runTaskTimer(this, 0L, 20L);
 
+        // Delay de 1 tick para garantir que o mundo carregou antes de spawnar
+        getServer().getScheduler().runTask(this, () -> {
+            gerenteNPC.carregarNPCs();
+        });
 
         getLogger().info("Core Online.");
     }
 
     @Override
     public void onDisable() {
+        if (gerenteNPC != null) {
+            gerenteNPC.desligarTudo();
+        }
         if (gerenteBanco != null) {
             gerenteBanco.fecharConexao();
         }
