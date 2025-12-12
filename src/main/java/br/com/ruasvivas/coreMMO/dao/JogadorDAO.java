@@ -2,6 +2,7 @@ package br.com.ruasvivas.coreMMO.dao;
 
 import br.com.ruasvivas.coreMMO.CoreMMO;
 import br.com.ruasvivas.coreMMO.banco.GerenteBanco;
+import br.com.ruasvivas.coreMMO.model.ClasseRPG;
 import br.com.ruasvivas.coreMMO.model.DadosJogador;
 import org.bukkit.entity.Player;
 
@@ -57,12 +58,21 @@ public class JogadorDAO {
                 dados.setMana(rs.getDouble("mana"));
                 dados.setMaxMana(rs.getDouble("mana_max"));
 
-                // Preenchendo a Guilda
-                dados.setGuildaId(rs.getInt("guilda_id"));
 
                 // Preenchendo Localização
                 dados.setLocalizacao(rs.getString("loc_mundo"), rs.getDouble("loc_x"), rs.getDouble("loc_y"),
                         rs.getDouble("loc_z"), rs.getFloat("loc_yaw"), rs.getFloat("loc_pitch"));
+
+                // Preenchendo a Guilda
+                dados.setGuildaId(rs.getInt("guilda_id"));
+
+                try {
+                    // Lê a String do banco e converte para Enum
+                    dados.setClasse(ClasseRPG.valueOf(rs.getString("classe")));
+                } catch (IllegalArgumentException e) {
+                    // Se der erro ou for nulo, assume Novato
+                    dados.setClasse(ClasseRPG.NOVATO);
+                }
 
                 return dados;
             }
@@ -79,6 +89,7 @@ public class JogadorDAO {
                     mana=?, mana_max=?,
                     loc_mundo=?, loc_x=?, loc_y=?, loc_z=?, loc_yaw=?, loc_pitch=?,
                     guilda_id=?,
+                    classe=?,
                     ultimo_login=CURRENT_TIMESTAMP
                     WHERE uuid=?
                 """;
@@ -110,8 +121,11 @@ public class JogadorDAO {
                 ps.setNull(12, java.sql.Types.INTEGER);
             }
 
+            // o NOME do Enum (ex: "MAGO")
+            ps.setString(13, dados.getClasse().name());
+
             // Where
-            ps.setString(13, dados.getUuid().toString());
+            ps.setString(14, dados.getUuid().toString());
 
             ps.executeUpdate();
             return true;

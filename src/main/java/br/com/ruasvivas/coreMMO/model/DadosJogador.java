@@ -9,6 +9,7 @@ public class DadosJogador {
     // Identidade
     private final UUID uuid;
     private final String username;
+    private ClasseRPG classe = ClasseRPG.NOVATO;
 
     // Progresso
     private int nivel;
@@ -45,6 +46,10 @@ public class DadosJogador {
     public String getUsername() {
         return username;
     }
+
+    public ClasseRPG getClasse() { return classe; }
+
+    public void setClasse(ClasseRPG classe) { this.classe = classe; }
 
     public int getNivel() {
         return nivel;

@@ -113,7 +113,9 @@ public class GerenteBanco {
                     "ALTER TABLE jogadores ADD COLUMN IF NOT EXISTS " +
                             "kills_pvp INT DEFAULT 0",
                     "ALTER TABLE jogadores ADD COLUMN IF NOT EXISTS " +
-                            "mortes INT DEFAULT 0"
+                            "mortes INT DEFAULT 0",
+                    // Classe
+                    "ALTER TABLE jogadores ADD COLUMN IF NOT EXISTS classe VARCHAR(16) DEFAULT 'NOVATO'"
             };
 
             for (String sql : updates) {

@@ -8,10 +8,7 @@ import br.com.ruasvivas.coreMMO.comandos.*;
 import br.com.ruasvivas.coreMMO.dao.GuildaDAO;
 import br.com.ruasvivas.coreMMO.dao.JogadorDAO;
 import br.com.ruasvivas.coreMMO.economia.GerenteEconomia;
-import br.com.ruasvivas.coreMMO.eventos.BatalhaListener;
-import br.com.ruasvivas.coreMMO.eventos.EntradaJornada;
-import br.com.ruasvivas.coreMMO.eventos.SaidaJornada;
-import br.com.ruasvivas.coreMMO.menus.MenuClasses;
+import br.com.ruasvivas.coreMMO.eventos.*;
 import br.com.ruasvivas.coreMMO.model.Guilda;
 import br.com.ruasvivas.coreMMO.npcs.GerenteNPC;
 import br.com.ruasvivas.coreMMO.npcs.NPCListener;
@@ -75,6 +72,8 @@ public final class CoreMMO extends JavaPlugin {
         // Usamos Objects.requireNonNull para garantir segurança se o comando não existir no yml
         Objects.requireNonNull(getCommand("curar")).setExecutor(new ComandoCurar());
         Objects.requireNonNull(getCommand("espada")).setExecutor(new ComandoEspada());
+        // Registra o comando /classe
+        Objects.requireNonNull(getCommand("classe")).setExecutor(new ComandoClasse());
         // Registrando Economia
         Objects.requireNonNull(getCommand("saldo")).setExecutor(new ComandoSaldo(this));
         Objects.requireNonNull(getCommand("pagar")).setExecutor(new ComandoPagar(this));
@@ -85,23 +84,15 @@ public final class CoreMMO extends JavaPlugin {
         // "Servidor, pegue seu Gerente de Plugins e registre os eventos desta classe"
         // 'this' significa que o plugin dono é este aqui (CoreMMO).
         getServer().getPluginManager().registerEvents(new EntradaJornada(this), this);
-        getServer().getPluginManager().registerEvents(
-                new br.com.ruasvivas.coreMMO.eventos.CanalChatListener(this), this
-        );
+        getServer().getPluginManager().registerEvents(new CanalChatListener(this), this);
+        // Registra o ouvinte do Menu de Classes
+        getServer().getPluginManager().registerEvents(new MenuClassesListener(this), this);
+
         getServer().getPluginManager().registerEvents(new SaidaJornada(this), this);
         // Registra os eventos de batalha
         getServer().getPluginManager().registerEvents(new BatalhaListener(this), this);
         // Registra NPCs
         getServer().getPluginManager().registerEvents(new NPCListener(this), this);
-
-        // Instanciamos a classe uma vez
-        MenuClasses menu = new MenuClasses();
-
-        // 1. Registra o comando /classe
-        Objects.requireNonNull(getCommand("classe")).setExecutor(menu);
-
-        // 2. Registra o evento de clique
-        getServer().getPluginManager().registerEvents(menu, this);
 
         // INICIANDO AS TASKS
         // runTaskTimer(plugin, delay, periodo)
