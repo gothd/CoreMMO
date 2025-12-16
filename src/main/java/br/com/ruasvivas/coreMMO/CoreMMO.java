@@ -9,6 +9,7 @@ import br.com.ruasvivas.coreMMO.dao.GuildaDAO;
 import br.com.ruasvivas.coreMMO.dao.JogadorDAO;
 import br.com.ruasvivas.coreMMO.economia.GerenteEconomia;
 import br.com.ruasvivas.coreMMO.eventos.*;
+import br.com.ruasvivas.coreMMO.habilidades.GerenteHabilidades;
 import br.com.ruasvivas.coreMMO.model.Guilda;
 import br.com.ruasvivas.coreMMO.npcs.GerenteNPC;
 import br.com.ruasvivas.coreMMO.npcs.NPCListener;
@@ -29,6 +30,7 @@ public final class CoreMMO extends JavaPlugin {
     private GerenteGuilda gerenteGuilda;
     private GuildaDAO guildaDAO;
     private GerenteNPC gerenteNPC;
+    private GerenteHabilidades gerenteHabilidades;
 
     @Override
     public void onEnable() {
@@ -41,6 +43,7 @@ public final class CoreMMO extends JavaPlugin {
         gerenteGuilda = new GerenteGuilda();
         gerenteEconomia = new GerenteEconomia(this);
         gerenteNPC = new GerenteNPC(this);
+        gerenteHabilidades = new GerenteHabilidades();
 
         // 2. Inicializa o banco
         gerenteBanco = new GerenteBanco(this);
@@ -147,5 +150,9 @@ public final class CoreMMO extends JavaPlugin {
 
     public GerenteEconomia getGerenteEconomia() {
         return gerenteEconomia;
+    }
+
+    public GerenteHabilidades getGerenteHabilidades() {
+        return gerenteHabilidades;
     }
 }

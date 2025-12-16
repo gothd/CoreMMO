@@ -18,11 +18,16 @@ public class RegeneracaoTask extends BukkitRunnable {
     public void run() {
         for (Player jogador : Bukkit.getOnlinePlayers()) {
             DadosJogador dados = plugin.getGerenteDados().getDados(jogador.getUniqueId());
+            if (dados == null) continue;
 
-            if (dados != null) {
-                // 1. Lógica: Recupera 5% da mana total
-                double regen = dados.getMaxMana() * 0.05;
-                dados.setMana(dados.getMana() + regen);
+            // 1. Lógica: Baseada na Classe
+            double regenBase = 5.0;
+            double multiplicadorClasse = dados.getClasse().getRegeneracaoMana();
+
+            double regeneracaoTotal = regenBase * multiplicadorClasse;
+
+            if (dados.getMana() < dados.getMaxMana()) {
+                dados.setMana(Math.min(dados.getMana() + regeneracaoTotal, dados.getMaxMana()));
 
                 // 2. Visual: Atualiza a barra
                 plugin.getGerenteDados().atualizarBarra(jogador, dados);
