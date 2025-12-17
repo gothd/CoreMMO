@@ -94,6 +94,7 @@ public final class CoreMMO extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SaidaJornada(this), this);
         // Registra os eventos de batalha
         getServer().getPluginManager().registerEvents(new BatalhaListener(this), this);
+        getServer().getPluginManager().registerEvents(new HabilidadeListener(this), this);
         // Registra NPCs
         getServer().getPluginManager().registerEvents(new NPCListener(this), this);
 

@@ -17,20 +17,36 @@ public class RegeneracaoTask extends BukkitRunnable {
     @Override
     public void run() {
         for (Player jogador : Bukkit.getOnlinePlayers()) {
-            DadosJogador dados = plugin.getGerenteDados().getDados(jogador.getUniqueId());
-            if (dados == null) continue;
+            // Bloco try-catch para evitar que um erro em um jogador mate a task para todos
+            try {
+                // Pega os dados da RAM (Rápido)
+                DadosJogador dados = plugin.getGerenteDados().getDados(jogador.getUniqueId());
+                if (dados == null) continue;
 
-            // 1. Lógica: Baseada na Classe
-            double regenBase = 5.0;
-            double multiplicadorClasse = dados.getClasse().getRegeneracaoMana();
+                // 1. Lógica de Regeneração (Matemática)
+                // Só regenera se não estiver cheio
+                if (dados.getMana() < dados.getMaxMana()) {
+                    double regen = 5.0;
 
-            double regeneracaoTotal = regenBase * multiplicadorClasse;
+                    // Aplica bônus de classe se existir
+                    if (dados.getClasse() != null) {
+                        regen *= dados.getClasse().getRegeneracaoMana();
+                    }
 
-            if (dados.getMana() < dados.getMaxMana()) {
-                dados.setMana(Math.min(dados.getMana() + regeneracaoTotal, dados.getMaxMana()));
+                    dados.setMana(Math.min(dados.getMana() + regen, dados.getMaxMana()));
+                }
 
-                // 2. Visual: Atualiza a barra
-                plugin.getGerenteDados().atualizarBarra(jogador, dados);
+                // 2. Lógica Visual (Interface)
+                // A atualização DEVE ocorrer sempre, mesmo se a mana estiver cheia,
+                // para manter a barra fixa na tela.
+
+                // Nível 1: Tenta atualizar, mas o GerenteDados bloqueará
+                // se houver uma mensagem de erro importante sendo exibida.
+                plugin.getGerenteDados().atualizarBarra(jogador);
+
+            } catch (Exception e) {
+                // Log discreto para não spammar o console, mas avisar do problema
+                plugin.getLogger().warning("Erro na task de regeneração para " + jogador.getName() + ": " + e.getMessage());
             }
         }
     }
