@@ -6,13 +6,14 @@ import br.com.ruasvivas.coreMMO.placar.GerentePlacar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
+import org.bukkit.Location;
 import org.bukkit.Sound;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.World;
-import org.bukkit.Location;
+import org.bukkit.potion.PotionEffectType;
 
 import java.time.Duration;
 
@@ -26,30 +27,27 @@ public class EntradaJornada implements Listener {
         this.plugin = plugin;
     }
 
-    // @EventHandler é OBRIGATÓRIO. Sem isso, o servidor ignora o código.
     @EventHandler
     public void aoEntrar(PlayerJoinEvent evento) {
         Player jogador = evento.getPlayer();
 
         // --- ACESSO AO BANCO (Assíncrono) ---
-        // Sai da linha principal para não travar o jogo
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
 
-            // 1. Garante registro no banco
+            // 1. Garante/Cria jogador no banco
             plugin.getJogadorDAO().criarJogador(jogador);
 
-            // 2. Carrega os dados para a memória local (variável)
+            // 2. Carrega os dados para a memória
             DadosJogador dados = plugin.getJogadorDAO().carregarJogador(jogador.getUniqueId());
 
-            // 3. Volta para a Thread Principal para salvar no Cache e Teleportar
-            // (Ações que mexem no Bukkit precisam ser Sync)
+            // 3. Volta para a Thread Principal (Sync) para liberar o jogador
             if (dados != null) {
                 plugin.getServer().getScheduler().runTask(plugin, () -> {
 
-                    // Salva no Cache
+                    // A. Salva no Cache
                     plugin.getGerenteDados().adicionarJogador(dados);
 
-                    // Teleporte (Se tiver local salvo)
+                    // B. Teleporte (Se houver local salvo)
                     if (dados.getMundo() != null) {
                         World mundo = getWorld(dados.getMundo());
                         if (mundo != null) {
@@ -58,30 +56,42 @@ public class EntradaJornada implements Listener {
                         }
                     }
 
-                    plugin.getLogger().info("Dados carregados para " + jogador.getName());
+                    // --- C. A LIBERAÇÃO ---
+                    // Remove o "Stun" e a Cegueira
+                    jogador.removePotionEffect(PotionEffectType.BLINDNESS);
+                    jogador.removePotionEffect(PotionEffectType.SLOWNESS);
+                    jogador.removePotionEffect(PotionEffectType.RESISTANCE);
+
+                    // Avisa o gerente que acabou o carregamento
+                    // (Libera Dano/Movimento)
+                    plugin.getGerenteDados().setCarregando(jogador.getUniqueId(), false);
+
+                    // Atualiza a UI imediatamente (Vida/Mana)
+                    plugin.getGerenteDados().atualizarBarra(jogador);
+
+                    // --- D. FEEDBACK VISUAL ---
+                    // Só mostra "Bem-vindo" agora que ele pode ver
+
+                    jogador.sendMessage(Component.text("Lenda carregada com sucesso!").color(NamedTextColor.GREEN));
+
+                    Component titulo = Component.text("BEM-VINDO").color(NamedTextColor.GOLD);
+                    Component subtitulo = Component.text("Sua jornada começa agora, " + dados.getClasse().getNome());
+
+                    Title.Times tempos = Title.Times.times(Duration.ofMillis(500), // 0.5 segundos para aparecer
+                            Duration.ofMillis(3000), // 3 segundos na tela
+                            Duration.ofMillis(1000)); // 1 segundo para sumir
+                    jogador.showTitle(Title.title(titulo, subtitulo, tempos));
+
+                    // Som de sucesso
+                    // (Beacon Activate é mais agradável que o dragão para login)
+                    jogador.playSound(jogador.getLocation(), Sound.BLOCK_BEACON_ACTIVATE, 1.0f, 1.0f);
+
+                    // Cria o placar lateral
+                    new GerentePlacar().criarPlacar(jogador);
+
+                    plugin.getLogger().info("Jogador " + jogador.getName() + " liberado no mundo.");
                 });
             }
         });
-
-        // 1. Mensagem no Chat (roda na hora)
-        jogador.sendMessage(Component.text("Bem-vindo à sua lenda!").color(NamedTextColor.AQUA));
-
-        // 2. Título na Tela (Recurso visual forte)
-        Component titulo = Component.text("BEM-VINDO").color(NamedTextColor.GOLD);
-        Component subtitulo = Component.text("Prepare-se, " + jogador.getName());
-
-        // Definindo a duração (Aparece, Fica, Some)
-        Title.Times tempos = Title.Times.times(Duration.ofMillis(500), Duration.ofMillis(3000),
-                Duration.ofMillis(1000));
-
-        Title tituloFinal = Title.title(titulo, subtitulo, tempos);
-        jogador.showTitle(tituloFinal);
-
-        // 3. Efeito Sonoro (Sound Design)
-        // Toca o som na posição do jogador
-        // 1.0f = Volume Máximo, 1.0f = Velocidade Normal
-        jogador.playSound(jogador.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0f, 1.0f);
-
-        new GerentePlacar().criarPlacar(jogador);
     }
 }

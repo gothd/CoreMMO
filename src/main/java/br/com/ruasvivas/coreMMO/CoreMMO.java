@@ -86,6 +86,7 @@ public final class CoreMMO extends JavaPlugin {
         // REGISTRO DE EVENTOS
         // "Servidor, pegue seu Gerente de Plugins e registre os eventos desta classe"
         // 'this' significa que o plugin dono é este aqui (CoreMMO).
+        getServer().getPluginManager().registerEvents(new LoginListener(this), this);
         getServer().getPluginManager().registerEvents(new EntradaJornada(this), this);
         getServer().getPluginManager().registerEvents(new CanalChatListener(this), this);
         // Registra o ouvinte do Menu de Classes

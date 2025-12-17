@@ -1,15 +1,12 @@
 package br.com.ruasvivas.coreMMO.cache;
 
 import br.com.ruasvivas.coreMMO.model.DadosJogador;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
+
+import java.util.*;
 
 public class GerenteDados {
 
@@ -17,6 +14,20 @@ public class GerenteDados {
     private final Map<UUID, DadosJogador> cache = new HashMap<>();
     // Mapa que guarda o Timestamp (ms) de até quando a barra está "ocupada"
     private final Map<UUID, Long> bloqueioActionBar = new HashMap<>();
+    // Set para armazenar UUIDs que estão carregando
+    private final Set<UUID> carregando = new HashSet<>();
+
+    public void setCarregando(UUID uuid, boolean estado) {
+        if (estado) {
+            carregando.add(uuid);
+        } else {
+            carregando.remove(uuid);
+        }
+    }
+
+    public boolean estaCarregando(UUID uuid) {
+        return carregando.contains(uuid);
+    }
 
     // Guarda o jogador no cache (Login)
     public void adicionarJogador(DadosJogador dados) {
