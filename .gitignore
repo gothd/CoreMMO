@@ -1,1 +1,13 @@
-target
+# Arquivos compilados (Maven)
+target/
+*.class
+
+# Arquivos da IDE (IntelliJ)
+.idea/
+*.iml
+*.iws
+
+# Arquivos de sistema e logs
+*.log
+.DS_Store
+Thumbs.db
