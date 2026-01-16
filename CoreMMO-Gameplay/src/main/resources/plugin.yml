@@ -1,0 +1,27 @@
+name: CoreMMO
+version: ${project.version}
+main: br.com.ruasvivas.gameplay.CorePlugin
+api-version: 1.21 # Ou a versão que você está usando (1.20, 1.21)
+authors: [ gothd ]
+depend: [ ] # Se tiver dependências soft como Vault, coloque aqui
+
+commands:
+  classe:
+    description: Abre o menu de escolha de classes.
+    usage: /classe
+    aliases: [ job, profissao ]
+
+  pagar:
+    description: Envia dinheiro para outro jogador.
+    usage: /pagar <jogador> <valor>
+    aliases: [ pay ]
+
+  saldo:
+    description: Mostra quanto dinheiro você tem.
+    usage: /saldo
+    aliases: [ money, bal, balance ]
+
+  guilda:
+    description: Sistema de guildas e clãs.
+    usage: /guilda <subcomando>
+    aliases: [ clan, g ]

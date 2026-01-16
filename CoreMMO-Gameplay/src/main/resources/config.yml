@@ -1,0 +1,41 @@
+# --- (CoreMMO) ---
+
+# [Infra] Configurações de Banco de Dados
+database:
+  host: "localhost"
+  port: "3306"
+  name: "coremmo_db"
+  user: "root"
+  password: "sua_senha_aqui"
+
+# [API] Configuração de NPCs
+npcs:
+  ferreiro:
+    name: "&eBorg"
+    title: "&7<Ferreiro>"
+    type: "IRON_GOLEM"
+    location:
+      world: "world"
+      x: 1.5
+      y: 176.0
+      z: 192.5
+      yaw: 90.0
+      pitch: 0.0
+    dialogue:
+      - "&eBorg: &fA forja está quente! Cuidado onde pisa."
+      - "&eBorg: &fTraga-me aço e farei maravilhas."
+
+  guia:
+    name: "&aMerlin"
+    title: "&7<Guia>"
+    type: "VILLAGER"
+    location:
+      world: "world"
+      x: -8.5
+      y: 181.0
+      z: 208.5
+      yaw: 180.0
+      pitch: 0.0
+    dialogue:
+      - "&aMerlin: &fBem-vindo, viajante!"
+      - "&aMerlin: &fUse &n/classe&r&f para escolher seu destino."

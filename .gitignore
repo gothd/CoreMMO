@@ -1,11 +1,18 @@
 # Arquivos compilados (Maven)
 target/
 *.class
+*.jar
+*.war
+*.ear
 
-# Arquivos da IDE (IntelliJ)
+# Arquivos de IDEs
 .idea/
 *.iml
 *.iws
+.vscode/
+*.classpath
+*.project
+*.settings/
 
 # Arquivos de sistema e logs
 *.log

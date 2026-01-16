@@ -1,7 +1,0 @@
-database:
-  host: "localhost"
-  port: 3306
-  user: "root"
-  password: "admin" # Altere para sua senha real!
-  name: "meu_servidor_minecraft_mmorpg"
-  pool-size: 10 # Quantas conexões manter abertas

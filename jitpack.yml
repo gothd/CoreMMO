@@ -1,0 +1,6 @@
+jdk:
+  - openjdk21
+maven:
+  - 3.9.6 # Força uma versão moderna do Maven exigida pelos plugins
+install:
+  - mvn install -DskipTests # Garante que API e Infra sejam instalados no repo local do build
