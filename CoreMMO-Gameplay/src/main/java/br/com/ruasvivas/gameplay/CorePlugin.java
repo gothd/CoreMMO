@@ -5,7 +5,9 @@ import br.com.ruasvivas.api.dao.GuildDAO;
 import br.com.ruasvivas.api.dao.UserDAO;
 import br.com.ruasvivas.api.database.IDatabase;
 import br.com.ruasvivas.api.database.ITableManager;
+import br.com.ruasvivas.api.service.CacheService;
 import br.com.ruasvivas.api.service.EconomyService;
+import br.com.ruasvivas.api.service.MobService;
 import br.com.ruasvivas.gameplay.command.BalanceCommand;
 import br.com.ruasvivas.gameplay.command.ClassCommand;
 import br.com.ruasvivas.gameplay.command.GuildCommand;
@@ -14,6 +16,7 @@ import br.com.ruasvivas.gameplay.listener.*;
 import br.com.ruasvivas.gameplay.manager.*;
 import br.com.ruasvivas.gameplay.task.AutoSaveTask;
 import br.com.ruasvivas.gameplay.task.RegenTask;
+import br.com.ruasvivas.gameplay.ui.ScoreboardManager;
 import br.com.ruasvivas.infra.dao.MariaDBGuildDAO;
 import br.com.ruasvivas.infra.dao.MariaDBUserDAO;
 import br.com.ruasvivas.infra.database.HikariDatabaseProvider;
@@ -31,6 +34,8 @@ public final class CorePlugin extends JavaPlugin {
     private GuildManager guildManager;
     private CooldownManager cooldownManager;
     private SkillManager skillManager;
+    private MobManager mobManager;
+    private ScoreboardManager scoreboardManager;
 
     @Override
     public void onEnable() {
@@ -54,19 +59,28 @@ public final class CorePlugin extends JavaPlugin {
         economyManager = new EconomyManager(this, cacheManager);
         cooldownManager = new CooldownManager();
         skillManager = new SkillManager();
+        mobManager = new MobManager(this);
         NPCManager npcManager = new NPCManager(this);
         // Carrega os NPCs
         npcManager.loadNPCs();
 
         // Registra no Registry (Para comandos e eventos usarem)
         CoreRegistry.register(NPCManager.class, npcManager);
-        CoreRegistry.register(CacheManager.class, cacheManager);
+        CoreRegistry.register(CacheManager.class, cacheManager); // Uso interno (ex: CoreMMO-Gameplay)
+        CoreRegistry.register(CacheService.class, cacheManager); // Uso externo (ex: CoreMMO-Dungeons)
         CoreRegistry.register(GuildManager.class, guildManager);
         CoreRegistry.register(CooldownManager.class, cooldownManager);
         // Registra o Serviço de Economia
         // Agora, qualquer lugar do código pode chamar:
         // CoreRegistry.get(EconomyService.class).pay(...)
         CoreRegistry.register(EconomyService.class, economyManager);
+        // REGISTRA NA API
+        CoreRegistry.register(MobService.class, mobManager);
+        // Opcional: registrar a classe concreta se precisar de métodos internos
+        CoreRegistry.register(MobManager.class, mobManager);
+
+        scoreboardManager = new ScoreboardManager();
+        CoreRegistry.register(ScoreboardManager.class, scoreboardManager);
 
         registerEvents();
         registerCommands();
@@ -138,6 +152,8 @@ public final class CorePlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new CombatListener(this, cacheManager), this);
         // NPCs
         getServer().getPluginManager().registerEvents(new NPCListener(), this);
+        // Mobs
+        getServer().getPluginManager().registerEvents(new MobListener(mobManager, cacheManager, scoreboardManager), this);
     }
 
     private void registerCommands() {

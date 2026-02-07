@@ -1,18 +1,18 @@
 package br.com.ruasvivas.gameplay.manager;
 
-import br.com.ruasvivas.common.model.User;
-import org.bukkit.entity.Player;
-
+import br.com.ruasvivas.api.service.CacheService;
 import br.com.ruasvivas.common.model.User;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class CacheManager {
+public class CacheManager implements CacheService {
 
     // Mapa thread-safe para guardar os usuários online
     private final Map<UUID, User> userCache = new ConcurrentHashMap<>();
@@ -36,11 +36,13 @@ public class CacheManager {
         loadingUsers.remove(uuid);
     }
 
+    @Override
     public User getUser(UUID uuid) {
         return userCache.get(uuid);
     }
 
     // Método auxiliar para pegar via Player do Bukkit
+    @Override
     public User getUser(Player player) {
         return getUser(player.getUniqueId());
     }
