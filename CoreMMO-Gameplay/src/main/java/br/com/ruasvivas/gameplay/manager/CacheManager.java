@@ -78,6 +78,16 @@ public class CacheManager implements CacheService {
     }
 
     /**
+     * Envia um aviso com tempo de duração personalizado.
+     * Útil para cooldowns curtos (ex: 0.5s) para não travar a tela por muito tempo.
+     */
+    public void sendTimedWarning(Player player, Component message, long millis) {
+        player.sendActionBar(message);
+        // Define o bloqueio exatamente pelo tempo solicitado
+        actionBarLock.put(player.getUniqueId(), System.currentTimeMillis() + millis);
+    }
+
+    /**
      * Nível 3: Crítico (Dano/Cura).
      * Força a atualização imediata.
      */
@@ -93,6 +103,14 @@ public class CacheManager implements CacheService {
             return System.currentTimeMillis() < end;
         }
         return false;
+    }
+
+    /**
+     * Remove qualquer bloqueio ativo da Action Bar.
+     * Permite que o próximo update (Regen ou Skill) desenhe livremente.
+     */
+    public void unlockActionBar(Player player) {
+        actionBarLock.remove(player.getUniqueId());
     }
 
     private void sendUserStatus(Player player) {

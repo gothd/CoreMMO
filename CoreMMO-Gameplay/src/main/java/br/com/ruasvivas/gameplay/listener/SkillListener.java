@@ -65,26 +65,41 @@ public class SkillListener implements Listener {
         if (cooldownManager.isOnCooldown(player.getUniqueId(), skill.getName())) {
             if (canSendWarning(player)) {
                 double left = cooldownManager.getRemainingSeconds(player.getUniqueId(), skill.getName());
-                Component msg = Component.text("Recarregando: " + String.format("%.1f", left) + "s").color(NamedTextColor.RED);
+
+                Component msg = Component.text("Recarregando: " + String.format("%.1f", left) + "s")
+                        .color(NamedTextColor.RED);
+
+                // Trava a barra SÓ pelo tempo que falta (+500ms de margem visual)
+                // Se falta 0.2s, trava por 0.7s. Se falta 5s, trava por 2s (limite máximo opcional)
+                long lockTime = (long) (left * 1000) + 500;
+                cacheManager.sendTimedWarning(player, msg, lockTime > 2000 ? 2000 : lockTime);
+
                 cacheManager.sendWarning(player, msg);
                 player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 0.5f);
             }
             return;
         }
 
+        // Lógica de Mana
         if (user.getMana() < skill.getManaCost()) {
             if (canSendWarning(player)) {
+                // Mana insuficiente é um erro, trava por 2s padrão
                 cacheManager.sendWarning(player, Component.text("Mana insuficiente!").color(NamedTextColor.BLUE));
                 player.playSound(player.getLocation(), Sound.BLOCK_GLASS_BREAK, 1f, 2f);
             }
             return;
         }
 
+        // Execução da Skill
         boolean success = skill.cast(player);
         if (success) {
             user.setMana(user.getMana() - skill.getManaCost());
             cooldownManager.addCooldown(player.getUniqueId(), skill.getName(), skill.getCooldownSeconds());
-            cacheManager.forceUpdate(player);
+
+            // Usa updateActionBar (respeita Locks importantes como Loot)
+            // Como o lock de cooldown anterior já deve ter expirado (ou não existia),
+            // a barra de mana vai aparecer, a menos que o MobListener tenha acabado de travar a tela com Loot.
+            cacheManager.updateActionBar(player);
         }
     }
 

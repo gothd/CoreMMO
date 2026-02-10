@@ -25,3 +25,8 @@ commands:
     description: Sistema de guildas e clãs.
     usage: /guilda <subcomando>
     aliases: [ clan, g ]
+
+  reloadmmo:
+    description: Recarrega as configurações de Loot e Drops
+    permission: coremmo.admin
+    usage: /reloadmmo

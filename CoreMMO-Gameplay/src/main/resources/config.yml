@@ -39,3 +39,53 @@ npcs:
     dialogue:
       - "&aMerlin: &fBem-vindo, viajante!"
       - "&aMerlin: &fUse &n/classe&r&f para escolher seu destino."
+
+# [Gameplay] Configuração de Loots
+loot-system:
+  enabled: true
+  # Configuração global de bônus de sorte por nível do mob
+  global-level-bonus: 0.01 # +1% de chance de drop extra por nível do mob
+
+  mobs:
+    ZOMBIE:
+      category: "HUMANOID"
+      drops:
+        - type: "VANILLA"
+          material: "ROTTEN_FLESH"
+          chance: 0.8
+          min: 1
+          max: 3
+        - type: "VANILLA"
+          material: "IRON_NUGGET"
+          chance: 0.3
+          min: 1
+          max: 2
+        - type: "RPG" # Aciona o ItemGenerator
+          chance: 0.05 # 5% Base
+          level-bonus: 0.02 # Ganha +2% de chance por nível do mob
+
+    SKELETON:
+      category: "HUMANOID"
+      drops:
+        - type: "VANILLA"
+          material: "BONE"
+          chance: 0.8
+          min: 1
+          max: 2
+        - type: "VANILLA"
+          material: "ARROW"
+          chance: 0.4
+          min: 1
+          max: 3
+        - type: "RPG"
+          chance: 0.05
+          level-bonus: 0.02
+
+    SPIDER:
+      category: "MONSTER"
+      drops:
+        - type: "VANILLA"
+          material: "STRING"
+          chance: 0.6
+          min: 1
+          max: 2

@@ -8,10 +8,7 @@ import br.com.ruasvivas.api.database.ITableManager;
 import br.com.ruasvivas.api.service.CacheService;
 import br.com.ruasvivas.api.service.EconomyService;
 import br.com.ruasvivas.api.service.MobService;
-import br.com.ruasvivas.gameplay.command.BalanceCommand;
-import br.com.ruasvivas.gameplay.command.ClassCommand;
-import br.com.ruasvivas.gameplay.command.GuildCommand;
-import br.com.ruasvivas.gameplay.command.PayCommand;
+import br.com.ruasvivas.gameplay.command.*;
 import br.com.ruasvivas.gameplay.listener.*;
 import br.com.ruasvivas.gameplay.manager.*;
 import br.com.ruasvivas.gameplay.task.AutoSaveTask;
@@ -36,6 +33,8 @@ public final class CorePlugin extends JavaPlugin {
     private SkillManager skillManager;
     private MobManager mobManager;
     private ScoreboardManager scoreboardManager;
+    private ItemGenerator itemGenerator;
+    private LootManager lootManager;
 
     @Override
     public void onEnable() {
@@ -63,6 +62,9 @@ public final class CorePlugin extends JavaPlugin {
         NPCManager npcManager = new NPCManager(this);
         // Carrega os NPCs
         npcManager.loadNPCs();
+        // Inicializa ItemGenerator
+        itemGenerator = new ItemGenerator(this);
+        lootManager = new LootManager(this, itemGenerator);
 
         // Registra no Registry (Para comandos e eventos usarem)
         CoreRegistry.register(NPCManager.class, npcManager);
@@ -153,7 +155,7 @@ public final class CorePlugin extends JavaPlugin {
         // NPCs
         getServer().getPluginManager().registerEvents(new NPCListener(), this);
         // Mobs
-        getServer().getPluginManager().registerEvents(new MobListener(mobManager, cacheManager, scoreboardManager), this);
+        getServer().getPluginManager().registerEvents(new MobListener(mobManager, cacheManager, scoreboardManager, lootManager), this);
     }
 
     private void registerCommands() {
@@ -161,6 +163,7 @@ public final class CorePlugin extends JavaPlugin {
         Objects.requireNonNull(getCommand("pagar")).setExecutor(new PayCommand(economyManager));
         Objects.requireNonNull(getCommand("saldo")).setExecutor(new BalanceCommand(cacheManager));
         Objects.requireNonNull(getCommand("guilda")).setExecutor(new GuildCommand(this, guildManager, cacheManager));
+        Objects.requireNonNull(getCommand("reloadmmo")).setExecutor(new ReloadCommand(this, lootManager));
     }
 
     private void initTasks() {
