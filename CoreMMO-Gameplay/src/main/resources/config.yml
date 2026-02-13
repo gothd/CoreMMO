@@ -46,6 +46,30 @@ loot-system:
   # Configuração global de bônus de sorte por nível do mob
   global-level-bonus: 0.01 # +1% de chance de drop extra por nível do mob
 
+  # Modos de Distribuição:
+  # LAST_HIT: Quem der o último golpe leva tudo (Padrão Minecraft/Ragnarok).
+  # CONTRIBUTION: Quem causou MAIS dano leva tudo (Competitivo/Bosses clássicos).
+  # INSTANTIATED: Cada jogador que causou X% de dano recebe seu próprio loot (WoW/Moderno).
+  distribution-mode: "CONTRIBUTION"
+
+  # Quantos jogadores recebem loot no modo CONTRIBUTION?
+  # 1 = Apenas quem bateu mais (Hardcore/Boss clássico)
+  # 3 = Os 3 que mais bateram ganham loot (Ideal para Party/Bosses de Mundo)
+  top-damage-limit: 3
+
+  # Apenas para modo INSTANTIATED:
+  # Porcentagem mínima de vida do mob que o jogador precisa tirar para ter direito ao loot.
+  # 0.10 = 10% da vida total.
+  min-damage-threshold: 0.10
+
+  # Distância Máxima (em blocos) que o jogador pode estar do mob ao morrer para receber loot.
+  # Se estiver mais longe que isso, perde o direito ao loot.
+  max-loot-distance: 40.0
+
+  # Tempo (em segundos) para o dano de um jogador "expirar".
+  # Se o jogador ficar X segundos sem bater no mob, o dano dele é esquecido.
+  damage-expiration-seconds: 20
+
   mobs:
     ZOMBIE:
       category: "HUMANOID"

@@ -33,8 +33,8 @@ public final class CorePlugin extends JavaPlugin {
     private SkillManager skillManager;
     private MobManager mobManager;
     private ScoreboardManager scoreboardManager;
-    private ItemGenerator itemGenerator;
     private LootManager lootManager;
+    private DamageTrackerManager damageTrackerManager;
 
     @Override
     public void onEnable() {
@@ -58,12 +58,13 @@ public final class CorePlugin extends JavaPlugin {
         economyManager = new EconomyManager(this, cacheManager);
         cooldownManager = new CooldownManager();
         skillManager = new SkillManager();
+        damageTrackerManager = new DamageTrackerManager();
         mobManager = new MobManager(this);
         NPCManager npcManager = new NPCManager(this);
         // Carrega os NPCs
         npcManager.loadNPCs();
         // Inicializa ItemGenerator
-        itemGenerator = new ItemGenerator(this);
+        ItemGenerator itemGenerator = new ItemGenerator(this);
         lootManager = new LootManager(this, itemGenerator);
 
         // Registra no Registry (Para comandos e eventos usarem)
@@ -155,7 +156,7 @@ public final class CorePlugin extends JavaPlugin {
         // NPCs
         getServer().getPluginManager().registerEvents(new NPCListener(), this);
         // Mobs
-        getServer().getPluginManager().registerEvents(new MobListener(mobManager, cacheManager, scoreboardManager, lootManager), this);
+        getServer().getPluginManager().registerEvents(new MobListener(mobManager, cacheManager, scoreboardManager, lootManager, damageTrackerManager), this);
     }
 
     private void registerCommands() {

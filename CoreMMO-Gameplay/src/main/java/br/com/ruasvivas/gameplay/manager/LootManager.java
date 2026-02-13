@@ -13,6 +13,15 @@ import java.util.logging.Level;
 
 public class LootManager {
 
+    // Enum para controle interno
+    public enum LootMode {LAST_HIT, CONTRIBUTION, INSTANTIATED}
+
+    private LootMode lootMode;
+    private int topDamageLimit;
+    private double minDamageThreshold;
+    private double maxLootDistance;
+    private int damageExpirationSeconds;
+
     private final JavaPlugin plugin;
     private final ItemGenerator itemGenerator;
     private final Map<EntityType, List<LootEntry>> lootTable = new HashMap<>();
@@ -31,6 +40,26 @@ public class LootManager {
 
         // BÔNUS GLOBAL
         double globalLevelBonus = config.getDouble("loot-system.global-level-bonus", 0.0);
+
+        // Lê configurações de distribuição
+        String modeStr = config.getString("loot-system.distribution-mode", "LAST_HIT");
+        try {
+            this.lootMode = LootMode.valueOf(modeStr.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            this.lootMode = LootMode.LAST_HIT;
+            plugin.getLogger().warning("Modo de loot invalido no config! Usando LAST_HIT.");
+        }
+
+        this.minDamageThreshold = config.getDouble("loot-system.min-damage-threshold", 0.10);
+
+        this.topDamageLimit = config.getInt("loot-system.top-damage-limit", 1);
+        if (this.topDamageLimit < 1) this.topDamageLimit = 1;
+
+        // Lê distância máxima
+        this.maxLootDistance = config.getDouble("loot-system.max-loot-distance", 40.0);
+
+        // Lê Expiração
+        this.damageExpirationSeconds = config.getInt("loot-system.damage-expiration-seconds", 20);
 
         ConfigurationSection mobsSection = config.getConfigurationSection("loot-system.mobs");
 
@@ -78,6 +107,27 @@ public class LootManager {
                 plugin.getLogger().log(Level.WARNING, "Erro ao carregar loot para " + key, e);
             }
         }
+    }
+
+    // Getters para usar no Listener
+    public LootMode getLootMode() {
+        return lootMode;
+    }
+
+    public int getTopDamageLimit() {
+        return topDamageLimit;
+    }
+
+    public double getMinDamageThreshold() {
+        return minDamageThreshold;
+    }
+
+    public double getMaxLootDistance() {
+        return maxLootDistance;
+    }
+
+    public int getDamageExpirationSeconds() {
+        return damageExpirationSeconds;
     }
 
     /**
