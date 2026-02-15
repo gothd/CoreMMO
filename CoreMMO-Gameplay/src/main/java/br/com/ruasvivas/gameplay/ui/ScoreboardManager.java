@@ -31,9 +31,10 @@ public class ScoreboardManager {
         obj.setDisplaySlot(DisplaySlot.SIDEBAR);
 
         // Criamos os times para as linhas dinâmicas
-        setupTeam(board, "coins", "§eOuro: ", "§f" + user.getCoins(), 3);
-        setupTeam(board, "level", "§aNível: ", "§f" + user.getLevel(), 4);
-        setupTeam(board, "class", "§bClasse: ", "§f" + user.getRpgClass().getDisplayName(), 5);
+        setupTeam(board, "coins", "§eOuro: ", "§f" + user.getCoins(), 6);
+        setupTeam(board, "level", "§aNível: ", "§f" + user.getLevel(), 5);
+        setupTeam(board, "xp", "§7XP: ", getProgressBar(user), 4);
+        setupTeam(board, "class", "§bClasse: ", "§f" + user.getRpgClass().getDisplayName(), 3);
 
         // Linhas estáticas
         obj.getScore("§7www.ruasvivas.com.br").setScore(1);
@@ -51,13 +52,14 @@ public class ScoreboardManager {
         // Atualizamos apenas o sufixo dos times existentes
         updateTeamValue(board, "coins", "§f" + user.getCoins());
         updateTeamValue(board, "level", "§f" + user.getLevel());
+        updateTeamValue(board, "xp", getProgressBar(user));
         updateTeamValue(board, "class", "§f" + user.getRpgClass().getDisplayName());
     }
 
     private void setupTeam(Scoreboard board, String name, String prefix, String suffix, int score) {
         Team team = board.registerNewTeam(name);
 
-        // Usamos uma cor legacy invisível como entrada única para o Score
+        // Usa uma cor legacy invisível como entrada única para o Score
         String entry = getEntryByScore(score);
         team.addEntry(entry);
 
@@ -76,5 +78,26 @@ public class ScoreboardManager {
 
     private String getEntryByScore(int score) {
         return "§" + score + "§r"; // Cria uma entrada invisível única baseada na posição
+    }
+
+    // Método auxiliar para desenhar a barra [||||....]
+    private String getProgressBar(User user) {
+        int percent = user.getProgressPercentage();
+        int bars = 10; // Tamanho total da barra (10 caracteres)
+        int progress = (int) ((percent / 100.0) * bars);
+
+        StringBuilder sb = new StringBuilder("§8[");
+
+        // Parte preenchida (Verde)
+        sb.append("§a");
+        for (int i = 0; i < progress; i++) sb.append("|");
+
+        // Parte vazia (Cinza)
+        sb.append("§7");
+        for (int i = progress; i < bars; i++) sb.append(".");
+
+        sb.append("§8] §f").append(percent).append("%");
+
+        return sb.toString();
     }
 }

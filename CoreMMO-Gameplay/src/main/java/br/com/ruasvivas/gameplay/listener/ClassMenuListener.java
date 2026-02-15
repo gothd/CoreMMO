@@ -7,10 +7,13 @@ import br.com.ruasvivas.common.model.User;
 import br.com.ruasvivas.gameplay.manager.CacheManager;
 import br.com.ruasvivas.gameplay.ui.ClassSelectionMenu;
 import br.com.ruasvivas.gameplay.ui.ScoreboardManager;
+import br.com.ruasvivas.gameplay.util.StatHelper;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -79,6 +82,17 @@ public class ClassMenuListener implements Listener {
 
         // Atualiza Cache
         user.setRpgClass(newClass);
+
+        // --- Recalcula e Aplica Vida/Mana imediatamente ---
+        StatHelper.syncStats(player, user);
+
+        // Cura o jogador
+        AttributeInstance maxHpAttr = player.getAttribute(Attribute.MAX_HEALTH);
+        if (maxHpAttr != null) {
+            player.setHealth(maxHpAttr.getValue());
+        }
+        user.setMana(user.getMaxMana());
+
         player.closeInventory();
 
         // Feedback

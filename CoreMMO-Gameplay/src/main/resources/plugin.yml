@@ -30,3 +30,8 @@ commands:
     description: Recarrega as configurações de Loot e Drops
     permission: coremmo.admin
     usage: /reloadmmo
+
+  stats:
+    description: Exibe detalhes dos atributos.
+    usage: /stats
+    aliases: [ mmo ]

@@ -1,5 +1,6 @@
 package br.com.ruasvivas.gameplay.manager;
 
+import br.com.ruasvivas.gameplay.util.BukkitConstants;
 import com.google.common.collect.Multimap;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -22,10 +23,12 @@ public class ItemGenerator {
     private final JavaPlugin plugin;
     private final Random random = new Random();
     public final NamespacedKey RPG_ITEM_KEY;
+    public final NamespacedKey RPG_ARMOR_KEY;
 
     public ItemGenerator(JavaPlugin plugin) {
         this.plugin = plugin;
         this.RPG_ITEM_KEY = new NamespacedKey(plugin, "rpg_item_data");
+        this.RPG_ARMOR_KEY = new NamespacedKey(plugin, "rpg_armor_value");
     }
 
     private enum ItemTier {
@@ -88,7 +91,7 @@ public class ItemGenerator {
             Attribute attr = entry.getKey();
             AttributeModifier originalMod = entry.getValue();
 
-            double finalValue = originalMod.getAmount(); // O valor "cru" (ex: 5.0 para Iron Sword)
+            double finalValue = originalMod.getAmount(); // O valor 'cru' (ex: 5.0 para Iron Sword)
 
             // Aplica os bônus do Tier
             if (attr == Attribute.ATTACK_DAMAGE) {
@@ -102,21 +105,36 @@ public class ItemGenerator {
                 displaySpeed = 4.0 + finalValue;
                 hasStats = true;
             } else if (attr == Attribute.ARMOR) {
+                // Soma o bônus, MAS NÃO aplica o atributo vanilla.
+                // Apenas salva para uso visual e lógico.
                 finalValue += tier.armorBonus;
-                displayArmor = finalValue; // Armadura não tem base de "corpo pelado", é direta
+                displayArmor = finalValue; // Armadura não tem base de 'corpo pelado', é direta
                 hasStats = true;
             }
 
             // Recria o modificador (Aqui é usado o finalValue SEM somar o +1 da mão, pois o jogo já soma)
             if (finalValue != 0) {
-                String keyName = "rpg_" + attr.getKey().getKey().replace(".", "_");
-                AttributeModifier newMod = new AttributeModifier(
-                        new NamespacedKey(plugin, keyName),
-                        finalValue,
-                        originalMod.getOperation(),
-                        originalMod.getSlotGroup()
-                );
-                meta.addAttributeModifier(attr, newMod);
+                // Remove o atributo vanilla (padrão)
+                meta.removeAttributeModifier(attr);
+
+                // Se for ARMADURA, NÃO adicionamos o modificador vanilla!
+                // Isso impede que o Minecraft reduza o dano ou mostre a barra bugada.
+                if (attr == Attribute.ARMOR) {
+                    // Salva APENAS no NBT (Visual/Lógica Custom)
+                    meta.getPersistentDataContainer().set(BukkitConstants.RPG_ARMOR_KEY, PersistentDataType.DOUBLE, finalValue);
+                }
+                else {
+                    // Para Dano/Speed: Recria o modificador vanilla para funcionar no cliente
+                    String uniqueKey = "rpg_bonus_" + UUID.randomUUID();
+                    AttributeModifier newMod = new AttributeModifier(
+                            new NamespacedKey(plugin, uniqueKey),
+                            finalValue,
+                            originalMod.getOperation(),
+                            originalMod.getSlotGroup()
+                    );
+                    // Adiciona o novo (RPG)
+                    meta.addAttributeModifier(attr, newMod);
+                }
             }
         }
 

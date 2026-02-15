@@ -14,6 +14,7 @@ import br.com.ruasvivas.gameplay.manager.*;
 import br.com.ruasvivas.gameplay.task.AutoSaveTask;
 import br.com.ruasvivas.gameplay.task.RegenTask;
 import br.com.ruasvivas.gameplay.ui.ScoreboardManager;
+import br.com.ruasvivas.gameplay.util.BukkitConstants;
 import br.com.ruasvivas.infra.dao.MariaDBGuildDAO;
 import br.com.ruasvivas.infra.dao.MariaDBUserDAO;
 import br.com.ruasvivas.infra.database.HikariDatabaseProvider;
@@ -45,6 +46,9 @@ public final class CorePlugin extends JavaPlugin {
         // Registramos o Logger do plugin na API para que a Infra possa usá-lo
         // java.util.logging.Logger é uma classe padrão do Java, então a API aceita.
         CoreRegistry.register(java.util.logging.Logger.class, this.getLogger());
+
+        // Inicializa constantes do Bukkit
+        BukkitConstants.init(this);
 
         // Inicializa a Infraestrutura (Banco de Dados)
         if (!setupInfra()) {
@@ -157,6 +161,10 @@ public final class CorePlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new NPCListener(), this);
         // Mobs
         getServer().getPluginManager().registerEvents(new MobListener(mobManager, cacheManager, scoreboardManager, lootManager, damageTrackerManager), this);
+        // Regeneração
+        getServer().getPluginManager().registerEvents(new RegenListener(), this);
+        // Detecção de Inventário
+        getServer().getPluginManager().registerEvents(new InventoryListener(this, cacheManager), this);
     }
 
     private void registerCommands() {
@@ -165,6 +173,7 @@ public final class CorePlugin extends JavaPlugin {
         Objects.requireNonNull(getCommand("saldo")).setExecutor(new BalanceCommand(cacheManager));
         Objects.requireNonNull(getCommand("guilda")).setExecutor(new GuildCommand(this, guildManager, cacheManager));
         Objects.requireNonNull(getCommand("reloadmmo")).setExecutor(new ReloadCommand(this, lootManager));
+        Objects.requireNonNull(getCommand("stats")).setExecutor(new StatsCommand(cacheManager));
     }
 
     private void initTasks() {

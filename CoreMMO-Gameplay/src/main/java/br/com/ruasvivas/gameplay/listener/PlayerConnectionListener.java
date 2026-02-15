@@ -5,6 +5,7 @@ import br.com.ruasvivas.api.dao.UserDAO;
 import br.com.ruasvivas.common.model.User;
 import br.com.ruasvivas.gameplay.manager.CacheManager;
 import br.com.ruasvivas.gameplay.ui.ScoreboardManager; // Vamos criar este em breve
+import br.com.ruasvivas.gameplay.util.StatHelper;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
@@ -91,6 +92,9 @@ public class PlayerConnectionListener implements Listener {
 
                 // A. Salva no Cache RAM
                 cacheManager.cacheUser(dadosFinais);
+
+                // --- Sincroniza Status (Vida/Mana baseada na classe) ---
+                StatHelper.syncStats(player, dadosFinais);
 
                 // B. Teleporte para última localização
                 if (dadosFinais.getWorldName() != null) {

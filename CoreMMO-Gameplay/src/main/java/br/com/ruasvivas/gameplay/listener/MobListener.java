@@ -1,14 +1,17 @@
 package br.com.ruasvivas.gameplay.listener;
 
 import br.com.ruasvivas.common.model.User;
+import br.com.ruasvivas.gameplay.CorePlugin;
 import br.com.ruasvivas.gameplay.manager.CacheManager;
 import br.com.ruasvivas.gameplay.manager.DamageTrackerManager;
 import br.com.ruasvivas.gameplay.manager.LootManager;
 import br.com.ruasvivas.gameplay.manager.MobManager;
 import br.com.ruasvivas.gameplay.ui.ScoreboardManager;
+import br.com.ruasvivas.gameplay.util.StatHelper;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
@@ -48,12 +51,25 @@ public class MobListener implements Listener {
     // --- RASTREAMENTO DE DANO ---
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onDamage(EntityDamageByEntityEvent event) {
-        if (event.getEntity() instanceof LivingEntity mob && event.getDamager() instanceof Player player) {
-            // Só rastreia se for um Mob do sistema (tem nível)
-            if (mob.getPersistentDataContainer().has(mobManager.LEVEL_KEY, PersistentDataType.INTEGER)) {
-                damageTracker.registerDamage(mob, player, event.getFinalDamage());
-            }
+        // Verifica se é um Mob Vivo e se faz parte do sistema RPG
+        if (!(event.getEntity() instanceof LivingEntity mob)) return;
+        if (!mob.getPersistentDataContainer().has(mobManager.LEVEL_KEY, PersistentDataType.INTEGER)) {
+            return;
         }
+
+        // RASTREAMENTO DE DANO (Lógica Exclusiva de Jogador)
+        // Verificamos se é um ataque de entidade
+        if (event.getDamager() instanceof Player player) {
+            damageTracker.registerDamage(mob, player, event.getFinalDamage());
+        }
+
+        // ATUALIZAÇÃO VISUAL (Para qualquer tipo de dano)
+        // Seja soco, fogo ou queda, o nome será atualizado no próximo tick
+        Bukkit.getScheduler().runTaskLater(CorePlugin.getInstance(), () -> {
+            if (!mob.isDead()) {
+                mobManager.updateName(mob);
+            }
+        }, 1L);
     }
 
     @EventHandler
@@ -212,12 +228,32 @@ public class MobListener implements Listener {
         long xpGain = 10 + (level * 5L);
         long coinsGain = random.nextInt(5) + level;
 
-        user.setExperience(user.getExperience() + xpGain);
+        // --- SISTEMA DE LEVEL UP ---
+        boolean leveledUp = user.addExperience(xpGain);
+
+        if (leveledUp) {
+            // --- Aplica o crescimento de status ---
+            StatHelper.syncStats(player, user);
+
+            // Efeitos de Level Up (Som + Partícula + Cura Total)
+            player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f);
+            player.sendMessage(Component.text(" ")
+                    .append(Component.text(" ⬆ LEVEL UP! ", NamedTextColor.GOLD, TextDecoration.BOLD))
+                    .append(Component.text("Você alcançou o nível " + user.getLevel(), NamedTextColor.YELLOW)));
+
+            // Cura vida e mana ao upar (Clássico de MMO)
+            user.setMana(user.getMaxMana());
+            AttributeInstance maxHp = player.getAttribute(Attribute.MAX_HEALTH);
+            if (maxHp != null) player.setHealth(maxHp.getValue());
+        }
+
         user.setCoins(user.getCoins() + coinsGain);
 
-        if (level >= 5) {
+        // Som de XP orb (apenas se não upou, para não poluir o som do level up)
+        if (!leveledUp && level >= 5) {
             player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.5f, 1f);
         }
+
         scoreboardManager.updateScoreboard(player);
 
         // --- Geração de Loot (Cada um roda seu RNG, sorte individual) ---

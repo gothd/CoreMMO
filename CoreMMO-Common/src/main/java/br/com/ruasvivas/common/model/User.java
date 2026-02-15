@@ -103,4 +103,79 @@ public class User {
     public double getZ() { return z; }
     public float getYaw() { return yaw; }
     public float getPitch() { return pitch; }
+
+    /**
+     * Calcula o XP total necessário para alcançar o Nível X.
+     * Fórmula: 50 * (Nivel^2) - (50 * Nivel)
+     * Lvl 1: 0
+     * Lvl 2: 100
+     * Lvl 10: 4.500
+     * Lvl 50: 122.500
+     */
+    public long getExpForLevel(int targetLevel) {
+        if (targetLevel <= 1) return 0;
+        return 50L * targetLevel * targetLevel - (50L * targetLevel);
+    }
+
+    /**
+     * Adiciona XP e processa Level Up.
+     * @return true se o jogador subiu de nível.
+     */
+    public boolean addExperience(long amount) {
+        this.experience += amount;
+        boolean leveledUp = false;
+
+        // Loop while para suportar subir múltiplos níveis de uma vez (ex: Matou Boss)
+        while (this.experience >= getExpForLevel(this.level + 1)) {
+            this.level++;
+            leveledUp = true;
+        }
+        return leveledUp;
+    }
+
+    /**
+     * Retorna a porcentagem (0 a 100) do progresso atual para o próximo nível.
+     * Útil para Scoreboards e Barras de Boss.
+     */
+    public int getProgressPercentage() {
+        long currentLevelExp = getExpForLevel(this.level);
+        long nextLevelExp = getExpForLevel(this.level + 1);
+
+        long needed = nextLevelExp - currentLevelExp;
+        long current = this.experience - currentLevelExp;
+
+        if (needed <= 0) return 100; // Prevenção de divisão por zero
+
+        return (int) ((current * 100.0) / needed);
+    }
+
+    /**
+     * Recalcula os atributos máximos com base na classe e nível atuais.
+     * Deve ser chamado ao upar de nível ou trocar de classe.
+     */
+    public void recalculateStats() {
+        // Base Stats (Todo mundo começa com isso)
+        double baseHealth = 20.0;
+        double baseMana = 50.0;
+
+        // Bônus de Classe * Nível
+        double healthBonus = rpgClass.getHealthPerLevel() * this.level;
+        double manaBonus = rpgClass.getManaPerLevel() * this.level;
+
+        // Define os novos máximos
+        // Nota: A vida atual não é setada aqui pois User não tem acesso ao Player do Bukkit
+        this.maxMana = baseMana + manaBonus;
+
+        // Garante que a mana atual não ultrapasse o máximo
+        if (this.mana > this.maxMana) {
+            this.mana = this.maxMana;
+        }
+    }
+
+    /**
+     * Calcula a Vida Máxima ideal (Para ser aplicada no Bukkit).
+     */
+    public double getCalculatedMaxHealth() {
+        return 20.0 + (rpgClass.getHealthPerLevel() * this.level);
+    }
 }
