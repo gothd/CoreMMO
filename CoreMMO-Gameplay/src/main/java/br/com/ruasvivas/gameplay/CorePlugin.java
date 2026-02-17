@@ -36,6 +36,7 @@ public final class CorePlugin extends JavaPlugin {
     private ScoreboardManager scoreboardManager;
     private LootManager lootManager;
     private DamageTrackerManager damageTrackerManager;
+    private PermissionManager permissionManager;
 
     @Override
     public void onEnable() {
@@ -64,6 +65,7 @@ public final class CorePlugin extends JavaPlugin {
         skillManager = new SkillManager();
         damageTrackerManager = new DamageTrackerManager();
         mobManager = new MobManager(this);
+        permissionManager = new PermissionManager(this);
         NPCManager npcManager = new NPCManager(this);
         // Carrega os NPCs
         npcManager.loadNPCs();
@@ -72,6 +74,7 @@ public final class CorePlugin extends JavaPlugin {
         lootManager = new LootManager(this, itemGenerator);
 
         // Registra no Registry (Para comandos e eventos usarem)
+        CoreRegistry.register(PermissionManager.class, permissionManager);
         CoreRegistry.register(NPCManager.class, npcManager);
         CoreRegistry.register(CacheManager.class, cacheManager); // Uso interno (ex: CoreMMO-Gameplay)
         CoreRegistry.register(CacheService.class, cacheManager); // Uso externo (ex: CoreMMO-Dungeons)
@@ -150,7 +153,7 @@ public final class CorePlugin extends JavaPlugin {
 
     private void registerEvents() {
         // Limbo e Carregamento
-        getServer().getPluginManager().registerEvents(new PlayerConnectionListener(this, cacheManager), this);
+        getServer().getPluginManager().registerEvents(new PlayerConnectionListener(this, cacheManager, permissionManager), this);
         // Menu e Skills
         getServer().getPluginManager().registerEvents(new ClassMenuListener(this, cacheManager), this);
         getServer().getPluginManager().registerEvents(new SkillListener(cacheManager, cooldownManager, skillManager), this);
@@ -174,6 +177,9 @@ public final class CorePlugin extends JavaPlugin {
         Objects.requireNonNull(getCommand("guilda")).setExecutor(new GuildCommand(this, guildManager, cacheManager));
         Objects.requireNonNull(getCommand("reloadmmo")).setExecutor(new ReloadCommand(this, lootManager));
         Objects.requireNonNull(getCommand("stats")).setExecutor(new StatsCommand(cacheManager));
+        Objects.requireNonNull(getCommand("grant")).setExecutor(new GrantCommand(permissionManager));
+        Objects.requireNonNull(getCommand("revoke")).setExecutor(new RevokeCommand(permissionManager));
+        Objects.requireNonNull(getCommand("kick")).setExecutor(new KickCommand());
     }
 
     private void initTasks() {

@@ -65,7 +65,10 @@ public class StatHelper {
         // Aplica no atributo vanilla APENAS para visualização
         AttributeInstance armorAttr = player.getAttribute(Attribute.ARMOR);
         if (armorAttr != null) {
-            armorAttr.setBaseValue(visualValue);
+            // Só seta se mudou
+            if (Math.abs(armorAttr.getBaseValue() - visualValue) > 0.01) {
+                armorAttr.setBaseValue(visualValue);
+            }
         }
     }
 

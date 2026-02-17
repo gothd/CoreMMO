@@ -14,4 +14,8 @@ public interface UserDAO {
 
     // Salva o estado atual
     boolean saveUser(User user);
+
+    void addPermission(UUID uuid, String permission);
+
+    void removePermission(UUID uuid, String permission);
 }

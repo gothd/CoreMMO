@@ -26,12 +26,36 @@ commands:
     usage: /guilda <subcomando>
     aliases: [ clan, g ]
 
-  reloadmmo:
-    description: Recarrega as configurações de Loot e Drops
-    permission: coremmo.admin
-    usage: /reloadmmo
-
   stats:
     description: Exibe detalhes dos atributos.
     usage: /stats
     aliases: [ mmo ]
+
+  # Comandos Administrativos (A verificação é feita no Java para customizar a mensagem)
+  reloadmmo:
+    description: Recarrega as configurações.
+    usage: /reloadmmo
+
+  grant:
+    description: Adiciona permissão a um jogador.
+    usage: /grant <jogador> <permissao>
+
+  revoke:
+    description: Remove permissão de um jogador.
+    usage: /revoke <jogador> <permissao>
+
+  kick:
+    description: Expulsa um jogador do servidor.
+    usage: /kick <jogador> [motivo]
+
+# Registro das Permissões
+permissions:
+  coremmo.mod:
+    description: Permissão básica para moderadores (Kick).
+    default: op
+
+  coremmo.admin:
+    description: Permissão total de administração.
+    default: op
+    children:
+      coremmo.mod: true

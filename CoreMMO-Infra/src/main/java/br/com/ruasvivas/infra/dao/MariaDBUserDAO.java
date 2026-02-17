@@ -10,6 +10,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -41,12 +43,13 @@ public class MariaDBUserDAO implements UserDAO {
     @Override
     public User loadUser(UUID uuid) {
         String sql = "SELECT * FROM jogadores WHERE uuid = ?";
+
+        String sqlPerms = "SELECT permissao FROM jogadores_permissoes WHERE uuid = ?";
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, uuid.toString());
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                // Usa o objeto User do módulo Common
                 User user = new User(uuid, rs.getString("username"));
 
                 user.setLevel(rs.getInt("nivel"));
@@ -56,6 +59,12 @@ public class MariaDBUserDAO implements UserDAO {
                 user.setMaxMana(rs.getDouble("mana_max"));
                 user.setGuildId(rs.getInt("guilda_id"));
 
+                try {
+                    user.setRpgClass(RPGClass.valueOf(rs.getString("classe")));
+                } catch (Exception e) {
+                    user.setRpgClass(RPGClass.NOVICE);
+                }
+
                 // Localização
                 user.setLocation(
                         rs.getString("loc_mundo"),
@@ -63,11 +72,15 @@ public class MariaDBUserDAO implements UserDAO {
                         rs.getFloat("loc_yaw"), rs.getFloat("loc_pitch")
                 );
 
-                // Conversão de Enum Segura
-                try {
-                    user.setRpgClass(RPGClass.valueOf(rs.getString("classe")));
-                } catch (Exception e) {
-                    user.setRpgClass(RPGClass.NOVICE);
+                try (PreparedStatement psPerms = conn.prepareStatement(sqlPerms)) {
+                    psPerms.setString(1, uuid.toString());
+                    ResultSet rsPerms = psPerms.executeQuery();
+
+                    List<String> loadedPerms = new ArrayList<>();
+                    while (rsPerms.next()) {
+                        loadedPerms.add(rsPerms.getString("permissao"));
+                    }
+                    user.setPermissions(loadedPerms);
                 }
 
                 return user;
@@ -129,6 +142,30 @@ public class MariaDBUserDAO implements UserDAO {
         } catch (SQLException e) {
             getLogger().severe("Erro ao salvar jogador: " + e.getMessage());
             return false;
+        }
+    }
+
+    @Override
+    public void addPermission(UUID uuid, String permission) {
+        String sql = "INSERT IGNORE INTO jogadores_permissoes (uuid, permissao) VALUES (?, ?)";
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, uuid.toString());
+            ps.setString(2, permission.toLowerCase());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            getLogger().severe("Erro ao adicionar permissão SQL: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void removePermission(UUID uuid, String permission) {
+        String sql = "DELETE FROM jogadores_permissoes WHERE uuid = ? AND permissao = ?";
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, uuid.toString());
+            ps.setString(2, permission.toLowerCase());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            getLogger().severe("Erro ao remover permissão SQL: " + e.getMessage());
         }
     }
 }

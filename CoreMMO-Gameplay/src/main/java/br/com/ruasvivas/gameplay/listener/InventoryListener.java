@@ -9,6 +9,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
@@ -22,19 +23,34 @@ public class InventoryListener implements Listener {
         this.cacheManager = cacheManager;
     }
 
-    // Evento genérico para recalcular stats ao fechar o inventário
-    // É a forma mais segura e leve de detectar mudanças de armadura
+    // Fecha o inventário -> Recalcula
     @EventHandler
     public void onClose(InventoryCloseEvent event) {
         if (event.getPlayer() instanceof Player player) {
-            // Verificação básica se é um usuário carregado
             if (cacheManager.getUser(player) != null) {
-                StatHelper.updateVisualArmor(player);
+                // Pequeno delay para garantir que o servidor processou a movimentação do item
+                plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                    StatHelper.updateVisualArmor(player);
+                }, 1L);
             }
         }
     }
 
-    // Detecta clique direito para equipar armadura (Hotbar)
+    // Clique no slot -> Recalcula
+    @EventHandler
+    public void onClick(InventoryClickEvent event) {
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+
+        // Verifica se é um slot de armadura (Type.ARMOR não cobre tudo, melhor checar raw slot ou tipo de slot)
+        if (event.getSlotType() == InventoryType.SlotType.ARMOR || event.isShiftClick()) {
+            // Recalcula no próximo tick (quando o item já tiver mudado de lugar)
+            plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                StatHelper.updateVisualArmor(player);
+            }, 1L);
+        }
+    }
+
+    // Clique Direito (Equipar rápido) -> Recalcula
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
         if (!event.hasItem()) return;
@@ -45,7 +61,6 @@ public class InventoryListener implements Listener {
         if (type.endsWith("_HELMET") || type.endsWith("_CHESTPLATE") ||
                 type.endsWith("_LEGGINGS") || type.endsWith("_BOOTS")) {
 
-            // Atrasa 1 tick para o item realmente ir para o corpo antes de calcular
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
                 StatHelper.updateVisualArmor(event.getPlayer());
             }, 1L);

@@ -120,8 +120,20 @@ public class ItemGenerator {
                 // Se for ARMADURA, NÃO adicionamos o modificador vanilla!
                 // Isso impede que o Minecraft reduza o dano ou mostre a barra bugada.
                 if (attr == Attribute.ARMOR) {
-                    // Salva APENAS no NBT (Visual/Lógica Custom)
+                    // Salva no NBT (Visual/Lógica Custom)
                     meta.getPersistentDataContainer().set(BukkitConstants.RPG_ARMOR_KEY, PersistentDataType.DOUBLE, finalValue);
+
+                    // Adiciona um modificador de valor 0.0.
+                    // Isso diz ao Minecraft: 'Este item tem modificadores customizados, ignore o padrão do material (+6)'.
+                    // Resultado: O item dá 0 de defesa vanilla. A barra será controlada 100% pelo StatHelper.
+                    String uniqueKey = "rpg_dummy_" + UUID.randomUUID();
+                    AttributeModifier dummyMod = new AttributeModifier(
+                            new NamespacedKey(plugin, uniqueKey),
+                            0.0,
+                            originalMod.getOperation(),
+                            originalMod.getSlotGroup()
+                    );
+                    meta.addAttributeModifier(attr, dummyMod);
                 }
                 else {
                     // Para Dano/Speed: Recria o modificador vanilla para funcionar no cliente

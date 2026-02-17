@@ -4,6 +4,7 @@ import br.com.ruasvivas.api.CoreRegistry;
 import br.com.ruasvivas.api.dao.UserDAO;
 import br.com.ruasvivas.common.model.User;
 import br.com.ruasvivas.gameplay.manager.CacheManager;
+import br.com.ruasvivas.gameplay.manager.PermissionManager;
 import br.com.ruasvivas.gameplay.ui.ScoreboardManager; // Vamos criar este em breve
 import br.com.ruasvivas.gameplay.util.StatHelper;
 import net.kyori.adventure.text.Component;
@@ -36,11 +37,13 @@ public class PlayerConnectionListener implements Listener {
     private final JavaPlugin plugin;
     private final CacheManager cacheManager;
     private final Logger logger;
+    private final PermissionManager permissionManager;
 
-    public PlayerConnectionListener(JavaPlugin plugin, CacheManager cacheManager) {
+    public PlayerConnectionListener(JavaPlugin plugin, CacheManager cacheManager, PermissionManager permissionManager) {
         this.plugin = plugin;
         this.cacheManager = cacheManager;
         this.logger = CoreRegistry.getSafe(Logger.class).orElse(plugin.getLogger());
+        this.permissionManager = permissionManager;
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -93,6 +96,9 @@ public class PlayerConnectionListener implements Listener {
                 // A. Salva no Cache RAM
                 cacheManager.cacheUser(dadosFinais);
 
+                // --- Injeta Permissões ---
+                CoreRegistry.get(PermissionManager.class).injectPermissions(player, dadosFinais);
+
                 // --- Sincroniza Status (Vida/Mana baseada na classe) ---
                 StatHelper.syncStats(player, dadosFinais);
 
@@ -130,6 +136,9 @@ public class PlayerConnectionListener implements Listener {
     public void onQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         UUID uuid = player.getUniqueId();
+
+        // Remove o attachment para evitar memory leak no Bukkit
+        CoreRegistry.get(PermissionManager.class).removePermissions(player);
 
         // Pega do Cache (RAM)
         User user = cacheManager.getUser(player);
