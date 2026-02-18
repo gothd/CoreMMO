@@ -1,5 +1,6 @@
 package br.com.ruasvivas.gameplay.listener;
 
+import br.com.ruasvivas.common.util.GameConstants;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Player;
@@ -23,7 +24,7 @@ public class RegenListener implements Listener {
         // Queremos que cure 20% da vida do Guerreiro (500 HP) também.
 
         // Fator: (CuraOriginal / 20.0)
-        double percentage = amount / 20.0;
+        double percentage = amount / GameConstants.BASE_PLAYER_HEALTH;
 
         // Nova Cura: Porcentagem * VidaMaximaReal
         double newAmount = percentage * maxHealth.getValue();

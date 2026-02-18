@@ -1,5 +1,7 @@
 package br.com.ruasvivas.common.model;
 
+import br.com.ruasvivas.common.util.GameConstants;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -155,7 +157,7 @@ public class User {
      */
     public void recalculateStats() {
         // Base Stats (Todo mundo começa com isso)
-        double baseHealth = 20.0;
+        double baseHealth = GameConstants.BASE_PLAYER_HEALTH;
         double baseMana = 50.0;
 
         // Bônus de Classe * Nível
@@ -176,6 +178,6 @@ public class User {
      * Calcula a Vida Máxima ideal (Para ser aplicada no Bukkit).
      */
     public double getCalculatedMaxHealth() {
-        return 20.0 + (rpgClass.getHealthPerLevel() * this.level);
+        return GameConstants.BASE_PLAYER_HEALTH + (rpgClass.getHealthPerLevel() * this.level);
     }
 }

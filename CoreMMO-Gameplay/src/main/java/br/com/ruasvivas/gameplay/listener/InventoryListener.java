@@ -2,6 +2,7 @@ package br.com.ruasvivas.gameplay.listener;
 
 import br.com.ruasvivas.gameplay.CorePlugin;
 import br.com.ruasvivas.gameplay.manager.CacheManager;
+import br.com.ruasvivas.gameplay.util.InventoryUtil;
 import br.com.ruasvivas.gameplay.util.StatHelper;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -41,9 +42,20 @@ public class InventoryListener implements Listener {
     public void onClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
 
-        // Verifica se é um slot de armadura (Type.ARMOR não cobre tudo, melhor checar raw slot ou tipo de slot)
-        if (event.getSlotType() == InventoryType.SlotType.ARMOR || event.isShiftClick()) {
-            // Recalcula no próximo tick (quando o item já tiver mudado de lugar)
+        // Se for Slot de Armadura OU (Shift-Click em item de Armadura E Slot vazio)
+        boolean shouldUpdate = false;
+
+        if (event.getSlotType() == InventoryType.SlotType.ARMOR) {
+            shouldUpdate = true;
+        } else if (event.isShiftClick() && event.getCurrentItem() != null) {
+            Material mat = event.getCurrentItem().getType();
+            // Só atualiza se for armadura e o slot estiver vazio (ou seja, vai equipar)
+            if (InventoryUtil.isArmor(mat) && InventoryUtil.isSlotEmptyFor(player.getInventory(), mat)) {
+                shouldUpdate = true;
+            }
+        }
+
+        if (shouldUpdate) {
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
                 StatHelper.updateVisualArmor(player);
             }, 1L);

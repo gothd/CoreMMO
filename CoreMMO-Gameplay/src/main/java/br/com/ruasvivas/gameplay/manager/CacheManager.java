@@ -2,6 +2,7 @@ package br.com.ruasvivas.gameplay.manager;
 
 import br.com.ruasvivas.api.service.CacheService;
 import br.com.ruasvivas.common.model.User;
+import br.com.ruasvivas.common.util.GameConstants;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.attribute.Attribute;
@@ -118,7 +119,7 @@ public class CacheManager implements CacheService {
         if (user == null) return;
 
         // Recupera vida máxima (Paper API)
-        double maxHealth = 20.0;
+        double maxHealth = GameConstants.BASE_PLAYER_HEALTH;
         var attr = player.getAttribute(Attribute.MAX_HEALTH);
         if (attr != null) maxHealth = attr.getValue();
 

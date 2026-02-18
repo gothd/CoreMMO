@@ -168,6 +168,8 @@ public final class CorePlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new RegenListener(), this);
         // Detecção de Inventário
         getServer().getPluginManager().registerEvents(new InventoryListener(this, cacheManager), this);
+        // Restrições de Nível
+        getServer().getPluginManager().registerEvents(new RestrictionListener(cacheManager), this);
     }
 
     private void registerCommands() {

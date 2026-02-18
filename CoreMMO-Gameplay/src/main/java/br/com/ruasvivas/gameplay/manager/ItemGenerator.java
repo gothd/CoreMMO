@@ -22,35 +22,51 @@ public class ItemGenerator {
 
     private final JavaPlugin plugin;
     private final Random random = new Random();
-    public final NamespacedKey RPG_ITEM_KEY;
-    public final NamespacedKey RPG_ARMOR_KEY;
 
     public ItemGenerator(JavaPlugin plugin) {
         this.plugin = plugin;
-        this.RPG_ITEM_KEY = new NamespacedKey(plugin, "rpg_item_data");
-        this.RPG_ARMOR_KEY = new NamespacedKey(plugin, "rpg_armor_value");
     }
 
     private enum ItemTier {
-        TIER_1(1, "T1", 0.0, 0.0, 0.0, NamedTextColor.GRAY),        // Comum
-        TIER_2(2, "T2", 1.0, 0.0, 1.0, NamedTextColor.GREEN),       // Incomum
-        TIER_3(3, "T3", 2.0, 0.1, 2.0, NamedTextColor.BLUE),        // Raro
-        TIER_4(4, "T4", 3.5, 0.2, 3.0, NamedTextColor.LIGHT_PURPLE), // Épico
-        TIER_5(5, "T5", 5.0, 0.3, 5.0, NamedTextColor.GOLD);        // Lendário
+        // T0: Comum (Início)
+        COMMON(0, "Comum", 1, 0.0, 0.0, 10.0, NamedTextColor.GRAY),
 
-        final int level;
+        // T1-T4: Incomum (Níveis 5-20)
+        UNCOMMON_1(1, "Inc I", 5, 1.0, 0.0, 20.0, NamedTextColor.GREEN),
+        UNCOMMON_2(2, "Inc II", 10, 1.5, 0.0, 30.0, NamedTextColor.GREEN),
+        UNCOMMON_3(3, "Inc III", 15, 2.0, 0.0, 45.0, NamedTextColor.GREEN),
+        UNCOMMON_4(4, "Inc IV", 20, 2.5, 0.05, 60.0, NamedTextColor.GREEN),
+
+        // T5-T8: Raro (Níveis 25-40)
+        RARE_1(5, "Raro I", 25, 3.5, 0.05, 80.0, NamedTextColor.BLUE),
+        RARE_2(6, "Raro II", 30, 4.5, 0.08, 100.0, NamedTextColor.BLUE),
+        RARE_3(7, "Raro III", 35, 5.5, 0.10, 120.0, NamedTextColor.BLUE),
+        RARE_4(8, "Raro IV", 40, 6.5, 0.12, 150.0, NamedTextColor.BLUE),
+
+        // T9-T11: Épico (Níveis 45-60)
+        EPIC_1(9, "Épico I", 45, 8.0, 0.15, 180.0, NamedTextColor.LIGHT_PURPLE),
+        EPIC_2(10, "Épico II", 50, 10.0, 0.18, 220.0, NamedTextColor.LIGHT_PURPLE),
+        EPIC_3(11, "Épico III", 55, 12.0, 0.20, 260.0, NamedTextColor.LIGHT_PURPLE),
+
+        // T12-T13: Lendário (End Game - Cap 400 Armor Total)
+        LEGENDARY_1(12, "Lendário", 60, 15.0, 0.25, 320.0, NamedTextColor.GOLD),
+        LEGENDARY_2(13, "Divino", 70, 20.0, 0.30, 400.0, NamedTextColor.GOLD);
+
+        final int id;
         final String tag;
+        final int requiredLevel;
         final double damageBonus;
         final double speedBonus;
-        final double armorBonus;
+        final double armorSetTotal; // Valor final aproximado da peça
         final NamedTextColor color;
 
-        ItemTier(int level, String tag, double damageBonus, double speedBonus, double armorBonus, NamedTextColor color) {
-            this.level = level;
+        ItemTier(int id, String tag, int reqLevel, double dmg, double spd, double armorSetTotal, NamedTextColor color) {
+            this.id = id;
             this.tag = tag;
-            this.damageBonus = damageBonus;
-            this.speedBonus = speedBonus;
-            this.armorBonus = armorBonus;
+            this.requiredLevel = reqLevel;
+            this.damageBonus = dmg;
+            this.speedBonus = spd;
+            this.armorSetTotal = armorSetTotal;
             this.color = color;
         }
     }
@@ -62,7 +78,7 @@ public class ItemGenerator {
 
         if (meta == null) return item;
 
-        // Seleção baseada em fórmula
+        // Seleção do Tier
         ItemTier tier = selectTier(mobLevel);
 
         // Nome Formatado: "Espada de Ferro [T3]"
@@ -73,12 +89,15 @@ public class ItemGenerator {
 
         meta.displayName(name);
 
+        // Lore Informativa
         List<Component> lore = new ArrayList<>();
-        lore.add(Component.text("Nível do Item: " + mobLevel, NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false));
+        // Level Gating na Lore
+        lore.add(Component.text("Nível Necessário: " + tier.requiredLevel, NamedTextColor.RED)
+                .decoration(TextDecoration.ITALIC, false));
         lore.add(Component.empty());
-        lore.add(Component.text("Estatísticas:", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.text("Atributos:", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
 
-        // Cálculo dos Atributos
+        // Atributos
         EquipmentSlot slot = getSlotForMaterial(material);
         Multimap<Attribute, AttributeModifier> defaults = material.getDefaultAttributeModifiers(slot);
 
@@ -90,7 +109,6 @@ public class ItemGenerator {
         for (Map.Entry<Attribute, AttributeModifier> entry : defaults.entries()) {
             Attribute attr = entry.getKey();
             AttributeModifier originalMod = entry.getValue();
-
             double finalValue = originalMod.getAmount(); // O valor 'cru' (ex: 5.0 para Iron Sword)
 
             // Aplica os bônus do Tier
@@ -105,9 +123,11 @@ public class ItemGenerator {
                 displaySpeed = 4.0 + finalValue;
                 hasStats = true;
             } else if (attr == Attribute.ARMOR) {
-                // Soma o bônus, MAS NÃO aplica o atributo vanilla.
-                // Apenas salva para uso visual e lógico.
-                finalValue += tier.armorBonus;
+                // Aqui substitui o valor vanilla pelo peso do Tier
+                // Aplica peso baseado no slot para valorizar peças maiores
+                double multiplier = getArmorMultiplier(slot);
+                // Valor Final = (Total do Set * Multiplicador)
+                finalValue = tier.armorSetTotal * multiplier;
                 displayArmor = finalValue; // Armadura não tem base de 'corpo pelado', é direta
                 hasStats = true;
             }
@@ -117,15 +137,11 @@ public class ItemGenerator {
                 // Remove o atributo vanilla (padrão)
                 meta.removeAttributeModifier(attr);
 
-                // Se for ARMADURA, NÃO adicionamos o modificador vanilla!
-                // Isso impede que o Minecraft reduza o dano ou mostre a barra bugada.
                 if (attr == Attribute.ARMOR) {
-                    // Salva no NBT (Visual/Lógica Custom)
+                    // Salva NBT e zera o vanilla
+                    // Isso impede que o Minecraft reduza o dano ou mostre a barra bugada.
                     meta.getPersistentDataContainer().set(BukkitConstants.RPG_ARMOR_KEY, PersistentDataType.DOUBLE, finalValue);
 
-                    // Adiciona um modificador de valor 0.0.
-                    // Isso diz ao Minecraft: 'Este item tem modificadores customizados, ignore o padrão do material (+6)'.
-                    // Resultado: O item dá 0 de defesa vanilla. A barra será controlada 100% pelo StatHelper.
                     String uniqueKey = "rpg_dummy_" + UUID.randomUUID();
                     AttributeModifier dummyMod = new AttributeModifier(
                             new NamespacedKey(plugin, uniqueKey),
@@ -134,9 +150,8 @@ public class ItemGenerator {
                             originalMod.getSlotGroup()
                     );
                     meta.addAttributeModifier(attr, dummyMod);
-                }
-                else {
-                    // Para Dano/Speed: Recria o modificador vanilla para funcionar no cliente
+                } else {
+                    // Dano/Speed Vanilla modificado
                     String uniqueKey = "rpg_bonus_" + UUID.randomUUID();
                     AttributeModifier newMod = new AttributeModifier(
                             new NamespacedKey(plugin, uniqueKey),
@@ -144,7 +159,6 @@ public class ItemGenerator {
                             originalMod.getOperation(),
                             originalMod.getSlotGroup()
                     );
-                    // Adiciona o novo (RPG)
                     meta.addAttributeModifier(attr, newMod);
                 }
             }
@@ -153,38 +167,62 @@ public class ItemGenerator {
         // Esconde atributos nativos
         meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
 
-        // Escreve a Lore com os valores corrigidos para leitura humana
+        // Lore Stats
         if (hasStats) {
-            if (displayDamage > 1.0) {
+            if (displayDamage > 1.0)
                 lore.add(Component.text(" ⚔ Dano: " + String.format("%.1f", displayDamage), NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
-            }
-            if (slot == EquipmentSlot.HAND && displaySpeed > 0) {
+            if (slot == EquipmentSlot.HAND && displaySpeed > 0)
                 lore.add(Component.text(" 🗡 Velocidade: " + String.format("%.2f", displaySpeed), NamedTextColor.BLUE).decoration(TextDecoration.ITALIC, false));
-            }
-            if (displayArmor > 0) {
-                lore.add(Component.text(" 🛡 Armadura: " + String.format("%.1f", displayArmor), NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false));
-            }
+            if (displayArmor > 0)
+                lore.add(Component.text(" 🛡 Defesa: " + String.format("%.0f", displayArmor), NamedTextColor.BLUE).decoration(TextDecoration.ITALIC, false));
         }
 
-        // Salva dados no NBT
-        meta.getPersistentDataContainer().set(RPG_ITEM_KEY, PersistentDataType.STRING, tier.tag);
+        // Salva Metadados Críticos (NBT)
+        meta.getPersistentDataContainer().set(BukkitConstants.RPG_ITEM_KEY, PersistentDataType.STRING, tier.name());
+        meta.getPersistentDataContainer().set(BukkitConstants.RPG_REQ_LEVEL_KEY, PersistentDataType.INTEGER, tier.requiredLevel);
+
         meta.lore(lore);
         item.setItemMeta(meta);
         return item;
     }
 
+    // Proporção baseada no Vanilla (20 Total: 8 Peito, 6 Calça, 3 Cap, 3 Bota)
+    private double getArmorMultiplier(EquipmentSlot slot) {
+        return switch (slot) {
+            case CHEST -> 0.40; // 40% (Ex: 160 de 400)
+            case LEGS -> 0.30;  // 30% (Ex: 120 de 400)
+            case HEAD, FEET -> 0.15; // 15% (Ex: 60 de 400)
+            default -> 0.0;
+        };
+    }
+
     private Material selectBaseMaterial(int level) {
-        List<Material> tier1 = Arrays.asList(Material.WOODEN_SWORD, Material.WOODEN_AXE, Material.LEATHER_CHESTPLATE, Material.LEATHER_BOOTS);
-        List<Material> tier2 = Arrays.asList(Material.STONE_SWORD, Material.STONE_AXE, Material.CHAINMAIL_CHESTPLATE, Material.CHAINMAIL_HELMET);
-        List<Material> tier3 = Arrays.asList(Material.IRON_SWORD, Material.IRON_AXE, Material.IRON_CHESTPLATE, Material.IRON_LEGGINGS);
-        List<Material> tier4 = Arrays.asList(Material.DIAMOND_SWORD, Material.DIAMOND_AXE, Material.DIAMOND_CHESTPLATE, Material.DIAMOND_BOOTS);
-        List<Material> tier5 = Arrays.asList(Material.NETHERITE_SWORD, Material.NETHERITE_AXE, Material.NETHERITE_CHESTPLATE);
+        List<Material> tier1 = Arrays.asList(
+                Material.WOODEN_SWORD, Material.WOODEN_AXE,
+                Material.LEATHER_HELMET, Material.LEATHER_CHESTPLATE, Material.LEATHER_LEGGINGS, Material.LEATHER_BOOTS
+        );
+        List<Material> tier2 = Arrays.asList(
+                Material.STONE_SWORD, Material.STONE_AXE,
+                Material.CHAINMAIL_HELMET, Material.CHAINMAIL_CHESTPLATE, Material.CHAINMAIL_LEGGINGS, Material.CHAINMAIL_BOOTS
+        );
+        List<Material> tier3 = Arrays.asList(
+                Material.IRON_SWORD, Material.IRON_AXE,
+                Material.IRON_HELMET, Material.IRON_CHESTPLATE, Material.IRON_LEGGINGS, Material.IRON_BOOTS
+        );
+        List<Material> tier4 = Arrays.asList(
+                Material.DIAMOND_SWORD, Material.DIAMOND_AXE,
+                Material.DIAMOND_HELMET, Material.DIAMOND_CHESTPLATE, Material.DIAMOND_LEGGINGS, Material.DIAMOND_BOOTS
+        );
+        List<Material> tier5 = Arrays.asList(
+                Material.NETHERITE_SWORD, Material.NETHERITE_AXE,
+                Material.NETHERITE_HELMET, Material.NETHERITE_CHESTPLATE, Material.NETHERITE_LEGGINGS, Material.NETHERITE_BOOTS
+        );
 
         List<Material> pool;
-        if (level < 3) pool = tier1;
-        else if (level < 5) pool = tier2;
-        else if (level < 10) pool = tier3;
-        else if (level < 20) pool = tier4;
+        if (level < 5) pool = tier1;
+        else if (level < 15) pool = tier2;
+        else if (level < 30) pool = tier3;
+        else if (level < 50) pool = tier4;
         else pool = tier5;
 
         return pool.get(random.nextInt(pool.size()));
@@ -194,29 +232,26 @@ public class ItemGenerator {
      * FÓRMULA DE PROGRESSÃO
      * Score = RNG(0..100) + (Nível * Multiplicador)
      */
-    private ItemTier selectTier(int level) {
-        // Rola um dado de 0 a 100
+    private ItemTier selectTier(int mobLevel) {
         double luck = random.nextDouble() * 100;
+        // Nível 50 Mob = +100 bonus -> Pode alcançar tiers altos
+        double score = luck + (mobLevel * 2.0);
 
-        // Bônus de nível: Cada nível do mob adiciona 3.5 pontos ao score
-        // Ex: Nível 1 = +3.5 | Nível 10 = +35 | Nível 20 = +70
-        double levelBonus = level * 3.5;
+        if (score >= 190) return ItemTier.LEGENDARY_2; // Só Mob Lv 45+ com muita sorte
+        if (score >= 170) return ItemTier.LEGENDARY_1;
+        if (score >= 155) return ItemTier.EPIC_3;
+        if (score >= 140) return ItemTier.EPIC_2;
+        if (score >= 125) return ItemTier.EPIC_1;
+        if (score >= 110) return ItemTier.RARE_4;
+        if (score >= 95) return ItemTier.RARE_3;
+        if (score >= 80) return ItemTier.RARE_2;
+        if (score >= 65) return ItemTier.RARE_1;
+        if (score >= 50) return ItemTier.UNCOMMON_4;
+        if (score >= 40) return ItemTier.UNCOMMON_3;
+        if (score >= 30) return ItemTier.UNCOMMON_2;
+        if (score >= 20) return ItemTier.UNCOMMON_1;
 
-        double score = luck + levelBonus;
-
-        // Tabela de Pontuação (Thresholds)
-        // Para conseguir T5 (145pts):
-        // - Nível 1 (Max Score 103.5): IMPOSSÍVEL
-        // - Nível 10 (Max Score 135):  IMPOSSÍVEL (Isso valoriza mobs high level)
-        // - Nível 15 (Max Score 152):  Possível com muita sorte (Top 5% rolls)
-        // - Nível 25 (Max Score 187):  Frequente
-
-        if (score >= 145) return ItemTier.TIER_5; // Lendário
-        if (score >= 115) return ItemTier.TIER_4; // Épico
-        if (score >= 85)  return ItemTier.TIER_3; // Raro
-        if (score >= 50)  return ItemTier.TIER_2; // Incomum
-
-        return ItemTier.TIER_1; // Comum (Lixo/Padrão)
+        return ItemTier.COMMON;
     }
 
     private EquipmentSlot getSlotForMaterial(Material mat) {
