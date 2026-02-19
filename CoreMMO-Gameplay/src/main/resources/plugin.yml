@@ -48,6 +48,11 @@ commands:
     description: Expulsa um jogador do servidor.
     usage: /kick <jogador> [motivo]
 
+  giverpg:
+    description: Gera um item RPG aleatório baseado em nível.
+    usage: /giverpg <jogador> <nivel>
+    permission: coremmo.admin
+
 # Registro das Permissões
 permissions:
   coremmo.mod:

@@ -37,6 +37,7 @@ public final class CorePlugin extends JavaPlugin {
     private LootManager lootManager;
     private DamageTrackerManager damageTrackerManager;
     private PermissionManager permissionManager;
+    private ItemGenerator itemGenerator;
 
     @Override
     public void onEnable() {
@@ -70,7 +71,7 @@ public final class CorePlugin extends JavaPlugin {
         // Carrega os NPCs
         npcManager.loadNPCs();
         // Inicializa ItemGenerator
-        ItemGenerator itemGenerator = new ItemGenerator(this);
+        itemGenerator = new ItemGenerator(this);
         lootManager = new LootManager(this, itemGenerator);
 
         // Registra no Registry (Para comandos e eventos usarem)
@@ -170,6 +171,8 @@ public final class CorePlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new InventoryListener(this, cacheManager), this);
         // Restrições de Nível
         getServer().getPluginManager().registerEvents(new RestrictionListener(cacheManager), this);
+        // Penalidade de Morte
+        getServer().getPluginManager().registerEvents(new DeathListener(this, cacheManager), this);
     }
 
     private void registerCommands() {
@@ -182,6 +185,7 @@ public final class CorePlugin extends JavaPlugin {
         Objects.requireNonNull(getCommand("grant")).setExecutor(new GrantCommand(permissionManager));
         Objects.requireNonNull(getCommand("revoke")).setExecutor(new RevokeCommand(permissionManager));
         Objects.requireNonNull(getCommand("kick")).setExecutor(new KickCommand());
+        Objects.requireNonNull(getCommand("giverpg")).setExecutor(new GiveRPGCommand(itemGenerator));
     }
 
     private void initTasks() {

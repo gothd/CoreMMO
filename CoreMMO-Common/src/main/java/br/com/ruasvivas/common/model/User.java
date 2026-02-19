@@ -136,6 +136,44 @@ public class User {
     }
 
     /**
+     * Remove uma porcentagem da barra de XP atual.
+     * @param percentage Valor entre 0.0 e 1.0 (ex: 0.10 para 10%)
+     * @param allowLevelDown Se true, permite cair de nível (ex: 10 -> 9).
+     * @return A quantidade exata de XP perdido.
+     */
+    public long removeExperience(double percentage, boolean allowLevelDown) {
+        if (percentage <= 0) return 0;
+
+        // Calcula o tamanho da barra atual (XP necessário para o próximo nível)
+        long currentLevelBase = getExpForLevel(this.level);
+        long nextLevelReq = getExpForLevel(this.level + 1);
+        long barSize = nextLevelReq - currentLevelBase;
+
+        // Calcula a perda baseada na barra
+        long loss = (long) (barSize * percentage);
+
+        // Garante que não tire mais do que o total (segurança)
+        if (loss > this.experience) loss = this.experience;
+
+        this.experience -= loss;
+
+        if (allowLevelDown) {
+            // Recalcula o nível de cima para baixo enquanto o XP for insuficiente
+            while (this.level > 1 && this.experience < getExpForLevel(this.level)) {
+                this.level--;
+            }
+        } else {
+            // Trava no início do nível atual (Barra vazia, mas nível mantido)
+            if (this.experience < currentLevelBase) {
+                loss = (this.experience + loss) - currentLevelBase; // Recalcula loss real (0 no caso do piso)
+                this.experience = currentLevelBase;
+            }
+        }
+
+        return loss;
+    }
+
+    /**
      * Retorna a porcentagem (0 a 100) do progresso atual para o próximo nível.
      * Útil para Scoreboards e Barras de Boss.
      */

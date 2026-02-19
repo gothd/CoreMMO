@@ -84,6 +84,9 @@ public class MobListener implements Listener {
 
     @EventHandler
     public void onDeath(EntityDeathEvent event) {
+        // Deixa o DeathListener cuidar dos players.
+        if (event.getEntity() instanceof Player) return;
+
         event.getEntity().customName(null); // Anti-Spam console
         event.getEntity().setCustomNameVisible(false);
         event.getDrops().clear(); // Limpa drops vanilla imediatamente

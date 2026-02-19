@@ -155,7 +155,7 @@ public class PlayerConnectionListener implements Listener {
                 CoreRegistry.getSafe(UserDAO.class).ifPresent(dao -> {
                     if (dao.saveUser(user)) {
                         // Log opcional (útil para debug)
-                         logger.info("Dados salvos na saída: " + player.getName());
+                        //logger.info("Dados salvos na saída: " + player.getName());
                     } else {
                         logger.warning("Erro ao salvar dados na saída: " + player.getName());
                     }

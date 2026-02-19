@@ -113,3 +113,24 @@ loot-system:
           chance: 0.6
           min: 1
           max: 2
+
+# [Gameplay] Penalidade de Morte
+death-penalty:
+  enabled: true
+
+  # Porcentagem de XP do NÍVEL ATUAL que será perdida.
+  # Ex: 0.10 = 10% da barra de XP.
+  xp-loss-percentage: 0.10
+
+  # Se true, o jogador pode cair de nível (ex: Lv 10 -> Lv 9) se perder muito XP.
+  # Se false, o XP trava no início do nível atual (0%).
+  allow-level-down: false
+
+  # Se true, equipamentos RPG (com NBT do plugin) voltam para o inventário (Soulbound).
+  # Se false, cai tudo no chão (Hardcore).
+  keep-rpg-items: true
+
+  # Mensagens
+  messages:
+    death: "&c☠ Você morreu! Perdeu &f{xp} XP&c."
+    level-down: "&c⬇ A morte foi severa... Você caiu para o nível &f{level}&c!"

@@ -59,8 +59,8 @@ public class CombatListener implements Listener {
         }
 
         // Debug (Opcional - remova em produção)
-        player.sendMessage("§7[Debug] Dano: " + String.format("%.1f", rawDamage) +
-                " -> " + String.format("%.1f", targetDamage) + " (Def: " + (int) rpgArmor + ")");
+        //player.sendMessage("§7[Debug] Dano: " + String.format("%.1f", rawDamage) +
+        //        " -> " + String.format("%.1f", targetDamage) + " (Def: " + (int) rpgArmor + ")");
 
         // Aplica o Dano Calculado
         // O servidor vai pegar esse valor, aplicar a armadura visual, e chegar no resultado da fórmula RPG.

@@ -12,7 +12,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockDispenseArmorEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -36,6 +39,7 @@ public class RestrictionListener implements Listener {
 
         ItemStack item = player.getInventory().getItemInMainHand();
         if (item.getType() == Material.AIR) return;
+
         if (!checkRequirement(player, item)) {
             event.setCancelled(true);
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
@@ -43,40 +47,51 @@ public class RestrictionListener implements Listener {
         }
     }
 
-    // Bloqueio de Equipar (Clique no Slot de Armadura)
+    // Bloqueio de Inventário (Mouse, Shift, Teclas 1-9 e Tecla F)
     @EventHandler(priority = EventPriority.LOW)
     public void onEquip(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
-        if (event.getSlotType() != InventoryType.SlotType.ARMOR) return;
 
-        // CASO A: Clique direto no slot de armadura (Equipar/Trocar)
+
+        ItemStack itemToEquip = null;
+
+        // CASO A: Interação DIRETAMENTE no slot de armadura
         if (event.getSlotType() == InventoryType.SlotType.ARMOR) {
-            // Aqui o "Cursor" é o item que está sendo colocado no slot
-            ItemStack cursorItem = event.getCursor();
-            if (cursorItem.getType() != Material.AIR) {
-                if (!checkRequirement(player, cursorItem)) {
-                    event.setCancelled(true);
-                    player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
-                    player.sendMessage(Component.text("Nível insuficiente para equipar!").color(NamedTextColor.RED));
+
+            // Segurando com o mouse e soltando no slot
+            if (event.getCursor().getType() != Material.AIR) {
+                itemToEquip = event.getCursor();
+            }
+            // Usando atalhos numéricos (1 a 9) da hotbar no slot de armadura
+            else if (event.getClick() == ClickType.NUMBER_KEY && event.getHotbarButton() >= 0) {
+                itemToEquip = player.getInventory().getItem(event.getHotbarButton());
+            }
+            // Usando a tecla 'F' (Swap da mão secundária) para forçar o item
+            else if (event.getClick() == ClickType.SWAP_OFFHAND) {
+                itemToEquip = player.getInventory().getItemInOffHand();
+            }
+        }
+
+        // CASO B: Shift-Click do inventário de baixo para o slot de armadura
+        else if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+
+            // Somente se o jogador está no próprio inventário (CRAFTING).
+            // Se tiver num baú (CHEST), o shift-click manda pro baú, então permite.
+            if (event.getView().getTopInventory().getType() == InventoryType.CRAFTING) {
+                ItemStack clickedItem = event.getCurrentItem();
+
+                if (clickedItem != null && InventoryUtil.isArmor(clickedItem.getType())) {
+                    itemToEquip = clickedItem;
                 }
             }
-            return;
         }
-        // CASO B: Shift-Click (Do inventário para o corpo)
-        ItemStack item = event.getCurrentItem();
-        if (item == null) return;
-        if (event.isShiftClick()) {
-            // Verifica se é um item de armadura ANTES de ler NBT
-            if (!InventoryUtil.isArmor(item.getType())) return;
 
-            // Verifica se o slot de destino está vazio (Lógica nativa do Minecraft)
-            // Se o slot já estiver ocupado, o Shift-Click não equipa, apenas move, então não precisa bloquear.
-            if (InventoryUtil.isSlotEmptyFor(player.getInventory(), item.getType())) {
-                if (!checkRequirement(player, item)) {
-                    event.setCancelled(true);
-                    player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
-                    player.sendMessage(Component.text("Nível insuficiente para equipar!").color(NamedTextColor.RED));
-                }
+        // Se o jogador está TENTANDO equipar algo, aplica a trava
+        if (itemToEquip != null && itemToEquip.getType() != Material.AIR) {
+            if (!checkRequirement(player, itemToEquip)) {
+                event.setCancelled(true);
+                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
+                player.sendMessage(Component.text("Nível insuficiente para equipar!").color(NamedTextColor.RED));
             }
         }
     }
@@ -96,6 +111,17 @@ public class RestrictionListener implements Listener {
         }
     }
 
+    // Bloqueio Anti-Bug de Redstone (Tentativa de equipar usando Ejetores)
+    @EventHandler(priority = EventPriority.LOW)
+    public void onDispenserEquip(BlockDispenseArmorEvent event) {
+        if (event.getTargetEntity() instanceof Player player) {
+            if (!checkRequirement(player, event.getItem())) {
+                event.setCancelled(true);
+            }
+        }
+    }
+
+    // Validador NBT
     private boolean checkRequirement(Player player, ItemStack item) {
         if (item == null || !item.hasItemMeta()) return true;
 
