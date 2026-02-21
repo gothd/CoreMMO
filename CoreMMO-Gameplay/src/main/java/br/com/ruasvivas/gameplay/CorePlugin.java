@@ -8,6 +8,7 @@ import br.com.ruasvivas.api.database.ITableManager;
 import br.com.ruasvivas.api.service.CacheService;
 import br.com.ruasvivas.api.service.EconomyService;
 import br.com.ruasvivas.api.service.MobService;
+import br.com.ruasvivas.api.service.PermissionService;
 import br.com.ruasvivas.gameplay.command.*;
 import br.com.ruasvivas.gameplay.listener.*;
 import br.com.ruasvivas.gameplay.manager.*;
@@ -73,6 +74,7 @@ public final class CorePlugin extends JavaPlugin {
         // Inicializa ItemGenerator
         itemGenerator = new ItemGenerator(this);
         lootManager = new LootManager(this, itemGenerator);
+        PermissionManager permissionManager = new PermissionManager(this);
 
         // Registra no Registry (Para comandos e eventos usarem)
         CoreRegistry.register(PermissionManager.class, permissionManager);
@@ -89,6 +91,8 @@ public final class CorePlugin extends JavaPlugin {
         CoreRegistry.register(MobService.class, mobManager);
         // Opcional: registrar a classe concreta se precisar de métodos internos
         CoreRegistry.register(MobManager.class, mobManager);
+        // Regista usando a Interface como chave, em vez da classe concreta
+        CoreRegistry.register(PermissionService.class, permissionManager);
 
         scoreboardManager = new ScoreboardManager();
         CoreRegistry.register(ScoreboardManager.class, scoreboardManager);
@@ -186,6 +190,7 @@ public final class CorePlugin extends JavaPlugin {
         Objects.requireNonNull(getCommand("revoke")).setExecutor(new RevokeCommand(permissionManager));
         Objects.requireNonNull(getCommand("kick")).setExecutor(new KickCommand());
         Objects.requireNonNull(getCommand("giverpg")).setExecutor(new GiveRPGCommand(itemGenerator));
+        Objects.requireNonNull(getCommand("npc")).setExecutor(new NPCCommand());
     }
 
     private void initTasks() {

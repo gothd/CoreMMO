@@ -15,7 +15,7 @@ npcs:
     title: "&7<Ferreiro>"
     type: "IRON_GOLEM"
     location:
-      world: "world"
+      world: "none"
       x: 1.5
       y: 176.0
       z: 192.5
@@ -30,7 +30,7 @@ npcs:
     title: "&7<Guia>"
     type: "VILLAGER"
     location:
-      world: "world"
+      world: "none"
       x: -8.5
       y: 181.0
       z: 208.5

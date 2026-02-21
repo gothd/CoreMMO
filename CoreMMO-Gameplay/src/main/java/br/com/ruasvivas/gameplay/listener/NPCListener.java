@@ -10,6 +10,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.inventory.EquipmentSlot;
 
 import java.util.List;
@@ -18,6 +19,25 @@ public class NPCListener implements Listener {
 
     // Serializador para transformar "&eTexto" em cor real
     private final LegacyComponentSerializer serializer = LegacyComponentSerializer.legacyAmpersand();
+
+    // --- SISTEMA ANTI-FANTASMAS (AUTO-CLEANUP) ---
+    @EventHandler
+    public void onChunkLoad(ChunkLoadEvent event) {
+        NPCManager manager = CoreRegistry.getSafe(NPCManager.class).orElse(null);
+        if (manager == null) return;
+
+        // Varre todas as entidades no Chunk que acabou de carregar
+        for (Entity entity : event.getChunk().getEntities()) {
+            // Se for um NPC...
+            if (entity.getScoreboardTags().contains(NPCManager.NPC_TAG)) {
+                // Pergunta ao Manager se esse NPC deveria existir nestas exatas coordenadas.
+                // Se a config mudou, ele retorna falso e a entidade morre!
+                if (!manager.isValidEntity(entity)) {
+                    entity.remove();
+                }
+            }
+        }
+    }
 
     @EventHandler
     public void onInteract(PlayerInteractEntityEvent event) {

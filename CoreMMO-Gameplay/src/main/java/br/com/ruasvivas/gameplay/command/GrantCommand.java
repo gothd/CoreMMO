@@ -1,6 +1,6 @@
 package br.com.ruasvivas.gameplay.command;
 
-import br.com.ruasvivas.gameplay.manager.PermissionManager;
+import br.com.ruasvivas.api.service.PermissionService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
@@ -12,11 +12,11 @@ import org.jetbrains.annotations.NotNull;
 
 public class GrantCommand implements CommandExecutor {
 
-    private final PermissionManager permissionManager;
+    private final PermissionService permissionService;
 
     // Injeção via Construtor
-    public GrantCommand(PermissionManager permissionManager) {
-        this.permissionManager = permissionManager;
+    public GrantCommand(PermissionService permissionService) {
+        this.permissionService = permissionService;
     }
 
     @Override
@@ -38,7 +38,7 @@ public class GrantCommand implements CommandExecutor {
         OfflinePlayer target = Bukkit.getOfflinePlayer(targetName);
 
         // Adiciona no banco
-        permissionManager.addPermission(target.getUniqueId(), permission);
+        permissionService.addPermission(target.getUniqueId(), permission);
 
         sender.sendMessage(Component.text("Permissão ")
                 .append(Component.text(permission).color(NamedTextColor.GOLD))

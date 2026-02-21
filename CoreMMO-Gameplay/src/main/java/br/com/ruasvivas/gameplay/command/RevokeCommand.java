@@ -1,5 +1,6 @@
 package br.com.ruasvivas.gameplay.command;
 
+import br.com.ruasvivas.api.service.PermissionService;
 import br.com.ruasvivas.gameplay.manager.PermissionManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -12,11 +13,11 @@ import org.jetbrains.annotations.NotNull;
 
 public class RevokeCommand implements CommandExecutor {
 
-    private final PermissionManager permissionManager;
+    private final PermissionService permissionService;
 
     // Injeção via Construtor
-    public RevokeCommand(PermissionManager permissionManager) {
-        this.permissionManager = permissionManager;
+    public RevokeCommand(PermissionService permissionService) {
+        this.permissionService = permissionService;
     }
 
     @Override
@@ -37,7 +38,7 @@ public class RevokeCommand implements CommandExecutor {
         // Suporta offline players
         OfflinePlayer target = Bukkit.getOfflinePlayer(targetName);
 
-        permissionManager.removePermission(target.getUniqueId(), permission);
+        permissionService.removePermission(target.getUniqueId(), permission);
 
         sender.sendMessage(Component.text("Permissão ")
                 .append(Component.text(permission).color(NamedTextColor.RED))

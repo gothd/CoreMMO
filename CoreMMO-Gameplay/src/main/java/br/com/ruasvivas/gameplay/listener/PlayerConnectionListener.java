@@ -51,6 +51,10 @@ public class PlayerConnectionListener implements Listener {
         Player player = event.getPlayer();
         UUID uuid = player.getUniqueId();
 
+        // Aplica a escala visual no mesmo tick que o jogador conecta.
+        player.setHealthScale(40.0);
+        player.setHealthScaled(true);
+
         // ESTADO DE LIMBO (Imediato)
         // Bloqueia o jogador visualmente e logicamente enquanto carregamos os dados
         cacheManager.setLoading(uuid, true);
@@ -106,6 +110,8 @@ public class PlayerConnectionListener implements Listener {
                 if (dadosFinais.getWorldName() != null) {
                     World mundo = getWorld(dadosFinais.getWorldName());
                     if (mundo != null) {
+                        // Previne dano de queda acumulado no limbo
+                        player.setFallDistance(0f);
                         player.teleport(new Location(mundo, dadosFinais.getX(), dadosFinais.getY(), dadosFinais.getZ(), dadosFinais.getYaw(), dadosFinais.getPitch()));
                     }
                 }

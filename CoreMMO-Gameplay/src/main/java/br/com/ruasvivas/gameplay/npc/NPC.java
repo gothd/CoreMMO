@@ -91,4 +91,8 @@ public class NPC {
             titleEntity = null;
         }
     }
+
+    public Location getLocation() {
+        return location;
+    }
 }

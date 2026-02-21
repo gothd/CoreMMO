@@ -53,6 +53,10 @@ commands:
     usage: /giverpg <jogador> <nivel>
     permission: coremmo.admin
 
+  npc:
+    description: Gerencia posicionamento de NPCs.
+    usage: /npc set <id>
+
 # Registro das Permissões
 permissions:
   coremmo.mod:

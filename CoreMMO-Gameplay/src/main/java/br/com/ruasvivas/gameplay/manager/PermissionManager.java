@@ -2,21 +2,18 @@ package br.com.ruasvivas.gameplay.manager;
 
 import br.com.ruasvivas.api.CoreRegistry;
 import br.com.ruasvivas.api.dao.UserDAO;
-import br.com.ruasvivas.api.database.IDatabase;
+import br.com.ruasvivas.api.service.PermissionService;
 import br.com.ruasvivas.common.model.User;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.PermissionAttachment;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class PermissionManager {
+public class PermissionManager implements PermissionService {
 
     private final JavaPlugin plugin;
     // Guarda o "Attachment" do Bukkit para poder remover depois
@@ -24,6 +21,13 @@ public class PermissionManager {
 
     public PermissionManager(JavaPlugin plugin) {
         this.plugin = plugin;
+    }
+
+    public void removePermissions(Player player) {
+        PermissionAttachment attachment = attachments.remove(player.getUniqueId());
+        if (attachment != null) {
+            player.removeAttachment(attachment);
+        }
     }
 
     /**
@@ -48,13 +52,7 @@ public class PermissionManager {
         attachments.put(player.getUniqueId(), attachment);
     }
 
-    public void removePermissions(Player player) {
-        PermissionAttachment attachment = attachments.remove(player.getUniqueId());
-        if (attachment != null) {
-            player.removeAttachment(attachment);
-        }
-    }
-
+    @Override
     public void addPermission(UUID uuid, String permission) {
         String perm = permission.toLowerCase();
 
@@ -79,6 +77,7 @@ public class PermissionManager {
         }
     }
 
+    @Override
     public void removePermission(UUID uuid, String permission) {
         String perm = permission.toLowerCase();
 
