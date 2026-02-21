@@ -4,11 +4,13 @@ import br.com.ruasvivas.api.CoreRegistry;
 import br.com.ruasvivas.api.skill.Skill;
 import br.com.ruasvivas.common.model.User;
 import br.com.ruasvivas.gameplay.manager.CacheManager;
+import br.com.ruasvivas.gameplay.manager.NPCManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.RayTraceResult;
@@ -47,7 +49,9 @@ public class PrecisionShotSkill implements Skill {
                 player.getEyeLocation().getDirection(),
                 50,
                 0.5, // Hitbox um pouco mais generosa
-                e -> e != player && e instanceof LivingEntity
+                e -> e != player
+                        && e instanceof LivingEntity
+                        && !e.getScoreboardTags().contains(NPCManager.NPC_TAG) // Ignora NPCs
         );
 
         // Desenha o rastro da flecha (Tracer Bullet)
@@ -68,10 +72,14 @@ public class PrecisionShotSkill implements Skill {
         double finalDamage = calculateDamage(player);
 
         // Lógica de Headshot (Geometria)
-        // Se acertou perto da altura dos olhos (Topo da hitbox)
-        double hitY = result.getHitPosition().getY();
-        double eyeY = target.getEyeLocation().getY();
-        boolean isHeadshot = hitY >= (eyeY - 0.3); //
+        boolean isHeadshot = false;
+        // Só calcula headshot se o mob tiver formato humanóide
+        if (canHeadshot(target.getType())) {
+            // Se acertou perto da altura dos olhos (Topo da hitbox)
+            double hitY = result.getHitPosition().getY();
+            double eyeY = target.getEyeLocation().getY();
+            isHeadshot = hitY >= (eyeY - 0.3);
+        }
 
         boolean isCrit = isHeadshot; // Headshot garante crítico
 
@@ -128,5 +136,18 @@ public class PrecisionShotSkill implements Skill {
             // Partícula CRIT é boa para rastro de sniper
             current.getWorld().spawnParticle(Particle.CRIT, current, 1, 0, 0, 0, 0); //
         }
+    }
+
+    /**
+     * Define quais entidades possuem uma anatomia humanóide (bípede) onde
+     * o "headshot" faz sentido físico e lógico.
+     */
+    private boolean canHeadshot(EntityType type) {
+        return switch (type) {
+            case PLAYER, ZOMBIE, SKELETON, WITHER_SKELETON, ZOMBIE_VILLAGER,
+                 HUSK, DROWNED, PIGLIN, PIGLIN_BRUTE, ZOMBIFIED_PIGLIN,
+                 PILLAGER, VINDICATOR, EVOKER, ILLUSIONER, WITCH, CREEPER -> true;
+            default -> false; // Aranhas, Vacas, Slimes, etc, não tomam headshot (apenas crit rng)
+        };
     }
 }
