@@ -57,6 +57,11 @@ commands:
     description: Gerencia posicionamento de NPCs.
     usage: /npc set <id>
 
+  region:
+    description: Gerencia as regiões e proteções do servidor.
+    usage: /region <create|expandvert>
+    aliases: [ rg ]
+
 # Registro das Permissões
 permissions:
   coremmo.mod:

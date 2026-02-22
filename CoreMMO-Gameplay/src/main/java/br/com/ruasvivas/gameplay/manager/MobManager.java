@@ -51,7 +51,7 @@ public class MobManager implements MobService {
             Integer storedLevel = pdc.get(LEVEL_KEY, PersistentDataType.INTEGER);
             level = storedLevel != null ? storedLevel : 1;
         } else {
-            // TODO: V1.1 -> Implementar lógica de distância do spawn aqui
+            // TODO: V1.2 -> Implementar lógica de distância do spawn aqui
             level = random.nextInt(10) + 1;
             pdc.set(LEVEL_KEY, PersistentDataType.INTEGER, level);
         }
@@ -156,6 +156,8 @@ public class MobManager implements MobService {
 
         entity.customName(name);
         entity.setCustomNameVisible(true);
+        // Força o despawn natural (Vanilla) mesmo o mob tendo um nome customizado
+        entity.setRemoveWhenFarAway(true);
     }
 
     private static @NonNull NamedTextColor getHeartColor(AttributeInstance maxHpAttr, double currentHp) {

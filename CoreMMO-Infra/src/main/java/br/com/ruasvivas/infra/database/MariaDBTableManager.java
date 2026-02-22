@@ -75,17 +75,34 @@ public class MariaDBTableManager implements ITableManager {
 
         // Tabela de Permissões (1:N com Jogadores)
         String sqlPerms = """
-            CREATE TABLE IF NOT EXISTS jogadores_permissoes (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                uuid VARCHAR(36) NOT NULL,
-                permissao VARCHAR(64) NOT NULL,
-                data_adicao DATETIME DEFAULT CURRENT_TIMESTAMP,
-                INDEX (uuid),
-                UNIQUE KEY unique_perm (uuid, permissao),
-                CONSTRAINT fk_perm_jogador FOREIGN KEY (uuid)\s
-                REFERENCES jogadores(uuid) ON DELETE CASCADE
-            ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-       \s""";
+                     CREATE TABLE IF NOT EXISTS jogadores_permissoes (
+                         id INT AUTO_INCREMENT PRIMARY KEY,
+                         uuid VARCHAR(36) NOT NULL,
+                         permissao VARCHAR(64) NOT NULL,
+                         data_adicao DATETIME DEFAULT CURRENT_TIMESTAMP,
+                         INDEX (uuid),
+                         UNIQUE KEY unique_perm (uuid, permissao),
+                         CONSTRAINT fk_perm_jogador FOREIGN KEY (uuid)\s
+                         REFERENCES jogadores(uuid) ON DELETE CASCADE
+                     ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+                \s""";
+
+        // Tabela de Regiões
+        String sqlRegions = """
+                    CREATE TABLE IF NOT EXISTS coremmo_regions (
+                        id VARCHAR(64) PRIMARY KEY,
+                        type VARCHAR(32) NOT NULL,
+                        world VARCHAR(64) NOT NULL,
+                        min_x DOUBLE NOT NULL,
+                        min_y DOUBLE NOT NULL,
+                        min_z DOUBLE NOT NULL,
+                        max_x DOUBLE NOT NULL,
+                        max_y DOUBLE NOT NULL,
+                        max_z DOUBLE NOT NULL,
+                        priority INT NOT NULL DEFAULT 0,
+                        owner_guild_id INT DEFAULT 0
+                    );
+                """;
 
         // Execução
         try (Connection conn = db.getConnection();
@@ -95,6 +112,7 @@ public class MariaDBTableManager implements ITableManager {
             stmt.addBatch(sqlGuilds);
             stmt.addBatch(sqlUsers);
             stmt.addBatch(sqlPerms);
+            stmt.addBatch(sqlRegions);
 
             stmt.executeBatch();
 

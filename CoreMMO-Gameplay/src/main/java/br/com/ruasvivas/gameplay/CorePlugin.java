@@ -2,13 +2,12 @@ package br.com.ruasvivas.gameplay;
 
 import br.com.ruasvivas.api.CoreRegistry;
 import br.com.ruasvivas.api.dao.GuildDAO;
+import br.com.ruasvivas.api.dao.RegionDAO;
 import br.com.ruasvivas.api.dao.UserDAO;
 import br.com.ruasvivas.api.database.IDatabase;
 import br.com.ruasvivas.api.database.ITableManager;
-import br.com.ruasvivas.api.service.CacheService;
-import br.com.ruasvivas.api.service.EconomyService;
-import br.com.ruasvivas.api.service.MobService;
-import br.com.ruasvivas.api.service.PermissionService;
+import br.com.ruasvivas.api.service.*;
+import br.com.ruasvivas.common.model.region.Region;
 import br.com.ruasvivas.gameplay.command.*;
 import br.com.ruasvivas.gameplay.listener.*;
 import br.com.ruasvivas.gameplay.manager.*;
@@ -17,11 +16,13 @@ import br.com.ruasvivas.gameplay.task.RegenTask;
 import br.com.ruasvivas.gameplay.ui.ScoreboardManager;
 import br.com.ruasvivas.gameplay.util.BukkitConstants;
 import br.com.ruasvivas.infra.dao.MariaDBGuildDAO;
+import br.com.ruasvivas.infra.dao.MariaDBRegionDAO;
 import br.com.ruasvivas.infra.dao.MariaDBUserDAO;
 import br.com.ruasvivas.infra.database.HikariDatabaseProvider;
 import br.com.ruasvivas.infra.database.MariaDBTableManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 
@@ -39,6 +40,8 @@ public final class CorePlugin extends JavaPlugin {
     private DamageTrackerManager damageTrackerManager;
     private PermissionManager permissionManager;
     private ItemGenerator itemGenerator;
+    private RegionManager regionManager;
+    private SelectionManager selectionManager;
 
     @Override
     public void onEnable() {
@@ -75,6 +78,8 @@ public final class CorePlugin extends JavaPlugin {
         itemGenerator = new ItemGenerator(this);
         lootManager = new LootManager(this, itemGenerator);
         PermissionManager permissionManager = new PermissionManager(this);
+        this.regionManager = new RegionManager();
+        selectionManager = new SelectionManager(this);
 
         // Registra no Registry (Para comandos e eventos usarem)
         CoreRegistry.register(PermissionManager.class, permissionManager);
@@ -93,9 +98,19 @@ public final class CorePlugin extends JavaPlugin {
         CoreRegistry.register(MobManager.class, mobManager);
         // Regista usando a Interface como chave, em vez da classe concreta
         CoreRegistry.register(PermissionService.class, permissionManager);
+        CoreRegistry.register(RegionManager.class, regionManager);
+        CoreRegistry.register(RegionService.class, regionManager);
 
         scoreboardManager = new ScoreboardManager();
         CoreRegistry.register(ScoreboardManager.class, scoreboardManager);
+
+        // Carrega as regiões do banco de dados para a memória!
+        RegionDAO regionDAO = CoreRegistry.get(RegionDAO.class);
+        List<Region> loadedRegions = regionDAO.loadAllRegions();
+        for (Region r : loadedRegions) {
+            regionManager.registerRegion(r);
+        }
+        getLogger().info(loadedRegions.size() + " regiões carregadas do banco de dados.");
 
         registerEvents();
         registerCommands();
@@ -145,6 +160,7 @@ public final class CorePlugin extends JavaPlugin {
             // Registra classes de acesso ao banco
             CoreRegistry.register(UserDAO.class, new MariaDBUserDAO());
             CoreRegistry.register(GuildDAO.class, new MariaDBGuildDAO());
+            CoreRegistry.register(RegionDAO.class, new MariaDBRegionDAO());
 
             return true;
 
@@ -177,6 +193,10 @@ public final class CorePlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new RestrictionListener(cacheManager), this);
         // Penalidade de Morte
         getServer().getPluginManager().registerEvents(new DeathListener(this, cacheManager), this);
+        // Seleção de Terreno
+        getServer().getPluginManager().registerEvents(new SelectionListener(selectionManager), this);
+        // Escudo de Regiões
+        getServer().getPluginManager().registerEvents(new ProtectionListener(regionManager), this);
     }
 
     private void registerCommands() {
@@ -191,6 +211,7 @@ public final class CorePlugin extends JavaPlugin {
         Objects.requireNonNull(getCommand("kick")).setExecutor(new KickCommand());
         Objects.requireNonNull(getCommand("giverpg")).setExecutor(new GiveRPGCommand(itemGenerator));
         Objects.requireNonNull(getCommand("npc")).setExecutor(new NPCCommand());
+        Objects.requireNonNull(getCommand("region")).setExecutor(new RegionCommand(selectionManager));
     }
 
     private void initTasks() {
